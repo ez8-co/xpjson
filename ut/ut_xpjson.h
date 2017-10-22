@@ -8,22 +8,6 @@
 
 TEST (ut_xpjson, write)
 {
-	class LocaleChanger
-	{
-	public:
-		LocaleChanger (void)
-		{
-#ifdef _WIN32
-			std::locale::global (std::locale ("chs"));
-#else
-			std::locale::global (std::locale ("zh_CN.UTF-8"));
-#endif
-		}
-		~LocaleChanger (void)
-		{
-			std::locale::global (std::locale ("C"));
-		}
-	} lc;
 	try {
 		JSON::Array a;
 		a.push_back (JSON::NIL);
