@@ -1434,46 +1434,16 @@ namespace JSON
 		}
 	}
 
-#define WHITE_SPACE_CASES	\
-	case ' ':	\
-	case '\b':	\
-	case '\f':	\
-	case '\n':	\
-	case '\r':	\
-	case '\t':	\
-
-#define SKIP_WHITE_SPACE_CASES	\
-	WHITE_SPACE_CASES		\
-		break;	\
-
-#define NUMBER_1_9_CASES	\
-	case '1':	\
-	case '2':	\
-	case '3':	\
-	case '4':	\
-	case '5':	\
-	case '6':	\
-	case '7':	\
-	case '8':	\
-	case '9':	\
-
-#define NUMBER_0_9_CASES	\
-	case '0':	\
-	NUMBER_1_9_CASES	\
-
-#define NUMBER_ENDINGS	\
-	WHITE_SPACE_CASES	\
-	case ',':	\
-	case ']':	\
-	case '}':	\
+#define WHITE_SPACE_CASES	case ' ':case '\b':case '\f':case '\n':case '\r':case '\t':
+#define SKIP_WHITE_SPACE_CASES	WHITE_SPACE_CASES break;
+#define NUMBER_1_9_CASES	case '1':case '2':case '3':case '4':case '5':case '6':case '7':case '8':case '9':
+#define NUMBER_0_9_CASES	case '0':NUMBER_1_9_CASES
+#define NUMBER_ENDINGS		WHITE_SPACE_CASES case ',':case ']':case '}':
 
 	template<class char_t>
 	size_t ValueT<char_t>::read_string(const char_t* in, size_t len)
 	{
-		enum {
-			NONE = 0,
-			NORMAL
-		};
+		enum {NONE = 0, NORMAL};
 		unsigned char state = NONE;
 		size_t pos = 0;
 		size_t start = 0;
@@ -1515,17 +1485,7 @@ namespace JSON
 	template<class char_t>
 	size_t ValueT<char_t>::read_number(const char_t* in, size_t len)
 	{
-		enum {
-			NONE = 0,
-			SIGN,
-			ZERO,
-			DIGIT,
-			POINT,
-			DIGIT_FRAC,
-			EXP,
-			EXP_SIGN,
-			DIGIT_EXP
-		};
+		enum {NONE = 0,SIGN, ZERO, DIGIT, POINT, DIGIT_FRAC, EXP, EXP_SIGN, DIGIT_EXP};
 		unsigned char state = NONE;
 		size_t pos = 0;
 		size_t start = 0;
