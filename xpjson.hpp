@@ -53,15 +53,15 @@ using namespace std;
 #	define JSON_TSTRING(type)			basic_string<type>
 #endif
 
-#define JSON_INTERNAL_ASSERT_CHECK_EX0(expression, excpetion_type, what)			\
-	if(!(expression)) {throw excpetion_type(what);}
-#define JSON_INTERNAL_ASSERT_CHECK_EX1(expression, excpetion_type, fmt, arg1)		\
-	if(!(expression)) {char what[0x100] = {0}; sprintf(what, fmt, arg1); throw excpetion_type(what);}
-#define JSON_INTERNAL_ASSERT_CHECK_EX2(expression, excpetion_type, fmt, arg1, arg2)	\
-	if(!(expression)) {char what[0x100] = {0}; sprintf(what, fmt, arg1, arg2); throw excpetion_type(what);}
-#define JSON_CHECK_TYPE(type, except)	JSON_INTERNAL_ASSERT_CHECK_EX2(type == except, std::logic_error, "Type error: except(%s), actual(%s)", get_type_name(except), get_type_name(type))
-#define JSON_PARSE_CHECK(expression) JSON_INTERNAL_ASSERT_CHECK_EX2 (expression, std::logic_error, "Parse error: in=%.50s pos=%zd.", detail::get_cstr(in, len).c_str (), pos)
-#define JSON_DECODE_CHECK(expression) JSON_INTERNAL_ASSERT_CHECK_EX1 (expression, std::logic_error, "Decode error: in=%.50s.", detail::get_cstr(in, len).c_str ())
+#define JSON_ASSERT_CHECK0(expression, what)			\
+	if(!(expression)) {throw std::logic_error(what);}
+#define JSON_ASSERT_CHECK1(expression, fmt, arg1)		\
+	if(!(expression)) {char what[0x100] = {0}; sprintf(what, fmt, arg1); throw std::logic_error(what);}
+#define JSON_ASSERT_CHECK2(expression, fmt, arg1, arg2)	\
+	if(!(expression)) {char what[0x100] = {0}; sprintf(what, fmt, arg1, arg2); throw std::logic_error(what);}
+#define JSON_CHECK_TYPE(type, except)	JSON_ASSERT_CHECK2(type == except, "Type error: except(%s), actual(%s)", get_type_name(except), get_type_name(type))
+#define JSON_PARSE_CHECK(expression) JSON_ASSERT_CHECK2 (expression, "Parse error: in=%.50s pos=%zd.", detail::get_cstr(in, len).c_str (), pos)
+#define JSON_DECODE_CHECK(expression) JSON_ASSERT_CHECK1 (expression, "Decode error: in=%.50s.", detail::get_cstr(in, len).c_str ())
 
 #ifdef __XPJSON_CXX11__
 #	define JSON_MOVE(statement)		std::move(statement)
@@ -940,7 +940,7 @@ namespace JSON
 				out.resize(len + bufSize);
 				int ret = fmter(&out[0] + len, bufSize, fmt, v);
 				if(ret == bufSize || ret < 0) {
-					JSON_INTERNAL_ASSERT_CHECK_EX0(false, std::logic_error, "Format error.");
+					JSON_ASSERT_CHECK0(false, "Format error.");
 				}
 				out.resize(len + ret);
 			}
@@ -1119,7 +1119,7 @@ namespace JSON
 					return (ch - 'a' + 10);
 				else if('A' <= ch && ch <= 'F')
 					return (ch - 'A' + 10);
-				JSON_INTERNAL_ASSERT_CHECK_EX1(false, std::logic_error, "Decode error: invalid character=0x%x.", ch);
+				JSON_ASSERT_CHECK1(false, "Decode error: invalid character=0x%x.", ch);
 			}
 
 			template<class char_t>
@@ -1308,7 +1308,7 @@ namespace JSON
 				case OBJECT:
 					return T(v.o());
 				default:
-					JSON_INTERNAL_ASSERT_CHECK_EX1(false, std::logic_error, "Type-casting error: from (%s) type to object.", get_type_name(v.type()));
+					JSON_ASSERT_CHECK1(false, "Type-casting error: from (%s) type to object.", get_type_name(v.type()));
 				}
 				return T(value);
 			}
@@ -1326,7 +1326,7 @@ namespace JSON
 				case ARRAY:
 					return T(v.a());
 				default:
-					JSON_INTERNAL_ASSERT_CHECK_EX1(false, std::logic_error, "Type-casting error: from (%s) type to array.", get_type_name(v.type()));
+					JSON_ASSERT_CHECK1(false, "Type-casting error: from (%s) type to array.", get_type_name(v.type()));
 				}
 				return T(value);
 			}
@@ -1354,12 +1354,12 @@ namespace JSON
 					else {
 						char_t* end = 0;
 						double d = ttod(v.s().c_str(), &end);
-						JSON_INTERNAL_ASSERT_CHECK_EX1(end == &v.s()[0] + v.s().length(), std::logic_error, "Type-casting error: (%s) to arithmetic.", detail::get_cstr(v.s().c_str(), v.s().length()).c_str());
+						JSON_ASSERT_CHECK1(end == &v.s()[0] + v.s().length(), "Type-casting error: (%s) to arithmetic.", detail::get_cstr(v.s().c_str(), v.s().length()).c_str());
 						return T(d);
 					}
-					JSON_INTERNAL_ASSERT_CHECK_EX1(false, std::logic_error, "Type-casting error: (%s) to arithmetic.", detail::get_cstr(v.s().c_str(), v.s().length()).c_str());
+					JSON_ASSERT_CHECK1(false, "Type-casting error: (%s) to arithmetic.", detail::get_cstr(v.s().c_str(), v.s().length()).c_str());
 				default:
-					JSON_INTERNAL_ASSERT_CHECK_EX1(false, std::logic_error, "Type-casting error: from (%s) type to arithmetic.", get_type_name(v.type()));
+					JSON_ASSERT_CHECK1(false, "Type-casting error: from (%s) type to arithmetic.", get_type_name(v.type()));
 				}
 				return T(value);
 			}
@@ -1380,7 +1380,7 @@ namespace JSON
 				case STRING:
 					return T(v.s());
 				default:
-					JSON_INTERNAL_ASSERT_CHECK_EX1(false, std::logic_error, "Type-casting error: from (%s) type to string.", get_type_name(v.type()));
+					JSON_ASSERT_CHECK1(false, "Type-casting error: from (%s) type to string.", get_type_name(v.type()));
 				}
 				return T(value);
 			}
