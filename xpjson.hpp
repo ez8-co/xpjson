@@ -43,6 +43,7 @@ using namespace std;
 #ifdef _WIN32
 // disable performance degradation warnings on casting from arithmetic type to bool
 #	pragma warning(disable:4800)
+// disable deprecated interface warnings
 #	pragma warning(disable:4996)
 #endif
 
