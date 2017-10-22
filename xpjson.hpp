@@ -76,31 +76,21 @@ namespace JSON
 	namespace detail
 	{
 		// type traits
-		template<bool, typename T = void>
-		struct json_enable_if {};
-		template<typename T>
-		struct json_enable_if<true, T> {typedef T type;};
+		template<bool, typename T = void> struct json_enable_if {};
+		template<typename T> struct json_enable_if<true, T> {typedef T type;};
 
-		template<class T>
-		struct json_remove_const {typedef T type;};
-		template<class T>
-		struct json_remove_const<const T> {typedef T type;};
-		template<class T>
-		struct json_remove_volatile {typedef T type;};
-		template<class T>
-		struct json_remove_volatile<volatile T> {typedef T type;};
-		template<class T>
-		struct json_remove_cv {typedef typename json_remove_const<typename json_remove_volatile<T>::type>::type type;};
+		template<class T> struct json_remove_const {typedef T type;};
+		template<class T> struct json_remove_const<const T> {typedef T type;};
+		template<class T> struct json_remove_volatile {typedef T type;};
+		template<class T> struct json_remove_volatile<volatile T> {typedef T type;};
+		template<class T> struct json_remove_cv {typedef typename json_remove_const<typename json_remove_volatile<T>::type>::type type;};
 
 		struct json_true_type {enum {value = true};};
 		struct json_false_type {enum {value = false};};
 
-		template<class T1, class T2>
-		struct json_is_same_ : json_false_type {};
-		template<class T>
-		struct json_is_same_<T, T> : json_true_type {};
-		template<class T1, class T2>
-		struct json_is_same : json_is_same_<typename json_remove_cv<T1>::type, T2> {};
+		template<class T1, class T2> struct json_is_same_ : json_false_type {};
+		template<class T> struct json_is_same_<T, T> : json_true_type {};
+		template<class T1, class T2> struct json_is_same : json_is_same_<typename json_remove_cv<T1>::type, T2> {};
 
 		template<class T> struct json_is_integral_ : json_false_type {};
 		template<> struct json_is_integral_<char> : json_true_type {};
@@ -145,13 +135,11 @@ namespace JSON
 			typedef typename json_remove_cv<T>::type type;
 			enum {value = json_is_integral_<type>::value || json_is_same<type, bool>::value || json_is_floating_point_<type>::value};
 		};
+		// end of type traits
 
-		template<class char_t>
-		JSON_TSTRING(char) get_cstr(const char_t* str, size_t len);
-		template<>
-		JSON_TSTRING(char) get_cstr<char>(const char* str, size_t len) {return JSON_MOVE(JSON_TSTRING(char)(str, len));}
-		template<>
-		JSON_TSTRING(char) get_cstr<wchar_t>(const wchar_t* str, size_t len)
+		template<class char_t> JSON_TSTRING(char) get_cstr(const char_t* str, size_t len);
+		template<> JSON_TSTRING(char) get_cstr<char>(const char* str, size_t len) {return JSON_MOVE(JSON_TSTRING(char)(str, len));}
+		template<> JSON_TSTRING(char) get_cstr<wchar_t>(const wchar_t* str, size_t len)
 		{
 			JSON_TSTRING(char) out;
 			out.resize(len * sizeof(wchar_t));
@@ -603,8 +591,7 @@ namespace JSON
 			return _array[pos];
 		}
 
-		template<class T>
-		T get(const tstring& key, const T& value) const;
+		template<class T> T get(const tstring& key, const T& value) const;
 
 		/** Clear current value. */
 		void clear(Type	type = NIL);
@@ -689,79 +676,49 @@ namespace JSON
 	typedef ReaderT<wchar_t> ReaderW;
 
 	/* Compare functions */
-	template<class char_t>
-	bool operator==(const ObjectT<char_t>& lhs, const ObjectT<char_t>& rhs);
-	template<class char_t>
-	bool operator==(const ArrayT<char_t>& lhs, const ArrayT<char_t>& rhs);
-	template<class char_t>
-	bool operator==(const ValueT<char_t>& lhs, const ValueT<char_t>& rhs);
+	template<class char_t> bool operator==(const ObjectT<char_t>& lhs, const ObjectT<char_t>& rhs);
+	template<class char_t> bool operator==(const ArrayT<char_t>& lhs, const ArrayT<char_t>& rhs);
+	template<class char_t> bool operator==(const ValueT<char_t>& lhs, const ValueT<char_t>& rhs);
 
-	template<class char_t>
-	inline bool operator!=(const ObjectT<char_t>& lhs, const ObjectT<char_t>& rhs) { return !operator==(lhs, rhs); }
-	template<class char_t>
-	inline bool operator!=(const ArrayT<char_t>& lhs, const ArrayT<char_t>& rhs) { return !operator==(lhs, rhs); }
-	template<class char_t>
-	inline bool operator!=(const ValueT<char_t>& lhs, const ValueT<char_t>& rhs) { return !operator==(lhs, rhs); }
+	template<class char_t> inline bool operator!=(const ObjectT<char_t>& lhs, const ObjectT<char_t>& rhs) { return !operator==(lhs, rhs); }
+	template<class char_t> inline bool operator!=(const ArrayT<char_t>& lhs, const ArrayT<char_t>& rhs) { return !operator==(lhs, rhs); }
+	template<class char_t> inline bool operator!=(const ValueT<char_t>& lhs, const ValueT<char_t>& rhs) { return !operator==(lhs, rhs); }
 
-	template<class char_t, class T>
-	inline typename detail::json_enable_if<detail::json_is_integral<T>::value, bool>::type
+	template<class char_t, class T> inline typename detail::json_enable_if<detail::json_is_integral<T>::value, bool>::type
 	operator==(const ValueT<char_t>& v, T i) { return v.type() == INTEGER && i == v.i(); }
-	template<class char_t, class T>
-	inline typename detail::json_enable_if<detail::json_is_floating_point<T>::value, bool>::type
+	template<class char_t, class T> inline typename detail::json_enable_if<detail::json_is_floating_point<T>::value, bool>::type
 	operator==(const ValueT<char_t>& v, T f) { return v.type() == FLOAT && fabs(f - v.f()) < JSON_EPSILON; }
-	template<class char_t>
-	inline bool operator==(const ValueT<char_t>& v, bool b) { return v.type() == BOOLEAN && b == v.b(); }
-	template<class char_t>
-	inline bool operator==(const ValueT<char_t>& v, const ObjectT<char_t>& o) { return v.type() == OBJECT && o == v.o(); }
-	template<class char_t>
-	inline bool operator==(const ValueT<char_t>& v, const ArrayT<char_t>& a) { return v.type() == ARRAY && a == v.a(); }
-	template<class char_t>
-	inline bool operator==(const ValueT<char_t>& v, const JSON_TSTRING(char_t)& s) { return v.type() == STRING && s == v.s(); }
+	template<class char_t> inline bool operator==(const ValueT<char_t>& v, bool b) { return v.type() == BOOLEAN && b == v.b(); }
+	template<class char_t> inline bool operator==(const ValueT<char_t>& v, const ObjectT<char_t>& o) { return v.type() == OBJECT && o == v.o(); }
+	template<class char_t> inline bool operator==(const ValueT<char_t>& v, const ArrayT<char_t>& a) { return v.type() == ARRAY && a == v.a(); }
+	template<class char_t> inline bool operator==(const ValueT<char_t>& v, const JSON_TSTRING(char_t)& s) { return v.type() == STRING && s == v.s(); }
 
-	template<class char_t, class T>
-	inline typename detail::json_enable_if<detail::json_is_integral<T>::value, bool>::type
+	template<class char_t, class T> inline typename detail::json_enable_if<detail::json_is_integral<T>::value, bool>::type
 	operator==(T i, const ValueT<char_t>& v) { return operator==(v, i); }
-	template<class char_t, class T>
-	inline typename detail::json_enable_if<detail::json_is_floating_point<T>::value, bool>::type
+	template<class char_t, class T> inline typename detail::json_enable_if<detail::json_is_floating_point<T>::value, bool>::type
 	operator==(T f, const ValueT<char_t>& v) { return operator==(v, f); }
-	template<class char_t>
-	inline bool operator==(bool b, const ValueT<char_t>& v) { return operator==(v, b); }
-	template<class char_t>
-	inline bool operator==(const ObjectT<char_t>& o, const ValueT<char_t>& v) { return operator==(v, o); }
-	template<class char_t>
-	inline bool operator==(const ArrayT<char_t>& a, const ValueT<char_t>& v) { return operator==(v, a); }
-	template<class char_t>
-	inline bool operator==(const JSON_TSTRING(char_t)& s, const ValueT<char_t>& v) { return operator==(v, s); }
+	template<class char_t> inline bool operator==(bool b, const ValueT<char_t>& v) { return operator==(v, b); }
+	template<class char_t> inline bool operator==(const ObjectT<char_t>& o, const ValueT<char_t>& v) { return operator==(v, o); }
+	template<class char_t> inline bool operator==(const ArrayT<char_t>& a, const ValueT<char_t>& v) { return operator==(v, a); }
+	template<class char_t> inline bool operator==(const JSON_TSTRING(char_t)& s, const ValueT<char_t>& v) { return operator==(v, s); }
 
-	template<class char_t, class T>
-	inline typename detail::json_enable_if<detail::json_is_integral<T>::value, bool>::type
+	template<class char_t, class T> inline typename detail::json_enable_if<detail::json_is_integral<T>::value, bool>::type
 	operator!=(const ValueT<char_t>& v, T i) { return !operator==(v, i); }
-	template<class char_t, class T>
-	inline typename detail::json_enable_if<detail::json_is_floating_point<T>::value, bool>::type
+	template<class char_t, class T> inline typename detail::json_enable_if<detail::json_is_floating_point<T>::value, bool>::type
 	operator!=(const ValueT<char_t>& v, T f) { return !operator==(v, f); }
-	template<class char_t>
-	inline bool operator!=(const ValueT<char_t>& v, bool b) { return !operator==(v, b); }
-	template<class char_t>
-	inline bool operator!=(const ValueT<char_t>& v, const ObjectT<char_t>& o) { return !operator==(v, o); }
-	template<class char_t>
-	inline bool operator!=(const ValueT<char_t>& v, const ArrayT<char_t>& a) { return !operator==(v, a); }
-	template<class char_t>
-	inline bool operator!=(const ValueT<char_t>& v, const JSON_TSTRING(char_t)& s) { return !operator==(v, s); }
+	template<class char_t> inline bool operator!=(const ValueT<char_t>& v, bool b) { return !operator==(v, b); }
+	template<class char_t> inline bool operator!=(const ValueT<char_t>& v, const ObjectT<char_t>& o) { return !operator==(v, o); }
+	template<class char_t> inline bool operator!=(const ValueT<char_t>& v, const ArrayT<char_t>& a) { return !operator==(v, a); }
+	template<class char_t> inline bool operator!=(const ValueT<char_t>& v, const JSON_TSTRING(char_t)& s) { return !operator==(v, s); }
 
-	template<class char_t, class T>
-	inline typename detail::json_enable_if<detail::json_is_integral<T>::value, bool>::type
+	template<class char_t, class T> inline typename detail::json_enable_if<detail::json_is_integral<T>::value, bool>::type
 	operator!=(T i, const ValueT<char_t>& v) { return !operator==(v, i); }
-	template<class char_t, class T>
-	inline typename detail::json_enable_if<detail::json_is_floating_point<T>::value, bool>::type
+	template<class char_t, class T> inline typename detail::json_enable_if<detail::json_is_floating_point<T>::value, bool>::type
 	operator!=(T f, const ValueT<char_t>& v) { return !operator==(v, f); }
-	template<class char_t>
-	inline bool operator!=(bool b, const ValueT<char_t>& v) { return !operator==(v, b); }
-	template<class char_t>
-	inline bool operator!=(const ObjectT<char_t>& o, const ValueT<char_t>& v) { return !operator==(v, o); }
-	template<class char_t>
-	inline bool operator!=(const ArrayT<char_t>& a, const ValueT<char_t>& v) { return !operator==(v, a); }
-	template<class char_t>
-	inline bool operator!=(const JSON_TSTRING(char_t)& s, const ValueT<char_t>& v) { return !operator==(v, s); }
+	template<class char_t> inline bool operator!=(bool b, const ValueT<char_t>& v) { return !operator==(v, b); }
+	template<class char_t> inline bool operator!=(const ObjectT<char_t>& o, const ValueT<char_t>& v) { return !operator==(v, o); }
+	template<class char_t> inline bool operator!=(const ArrayT<char_t>& a, const ValueT<char_t>& v) { return !operator==(v, a); }
+	template<class char_t> inline bool operator!=(const JSON_TSTRING(char_t)& s, const ValueT<char_t>& v) { return !operator==(v, s); }
 }
 
 namespace JSON
@@ -1131,9 +1088,8 @@ namespace JSON
 				return (highByte << 8) | lowByte;
 			}
 
-			template<class char_t>
-			void decode_unicode_append(unsigned int ui, JSON_TSTRING(char_t)& out);
-
+			template<class char_t> void decode_unicode_append(unsigned int ui, JSON_TSTRING(char_t)& out);
+			template<> void decode_unicode_append<wchar_t>(unsigned int ui, JSON_TSTRING(wchar_t)& out) { out += ui; }
 			template<>
 			void decode_unicode_append<char>(unsigned int ui, JSON_TSTRING(char)& out)
 			{
@@ -1184,9 +1140,6 @@ namespace JSON
 					out[len]     = ((ui >> 30) & 0x01) | 0xFC;
 				}
 			}
-
-			template<>
-			void decode_unicode_append<wchar_t>(unsigned int ui, JSON_TSTRING(wchar_t)& out) { out += ui; }
 
 			template<class char_t>
 			size_t decode_unicode(const char_t* in, size_t len, JSON_TSTRING(char_t)& out)
@@ -1387,8 +1340,7 @@ namespace JSON
 		}
 	}
 
-	template<class char_t>
-	template<class T>
+	template<class char_t> template<class T>
 	T JSON::ValueT<char_t>::get(const tstring& key, const T& value) const
 	{
 		JSON_CHECK_TYPE(_type, OBJECT);
