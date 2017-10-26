@@ -1,20 +1,20 @@
 
 ### What is xpjson?
 
-- It's a minimal Xross-Platform/Xtreme-Performance JSON read & write library in C++.
+- A minimal Xross-Platform/Xtreme-Performance JSON read & write library in C++.
 
 ### Why use xpjson?
 
 - Easy-to-use, it's STL-based, and designed to be used without extra studies.
-- Easy-to-assemble, only a header needs to be included.
-- Portable for popular platforms， like linux and windows.
+- Easy-to-assemble, only a tiny header file needs to be included.
+- Portable for popular platforms, like linux and windows.
 - No extra dependencies unless STL and std c libraries.
-- High-performance-aimed.
+- High-performance & high-concurrency aimed.
 - 100K scenario validated till now in commercial distributed application service.
 
 ### Performance-purpose Details
 
-- Can skip detection that whether the string need to be converted or escaped
+- Can skip detection that whether string needs to be converted or escaped
   - Always detect as default.
     - You can use a flag to skip.
     - Auto set during deserialization if skip is possible.
@@ -24,11 +24,12 @@
   - Gaudy feature I think, because performance, size of packet and binaries is most important, not low-frequency debug dump.
   - We can use online json-validation web or even web browse console to show them in pretty formats instead.
 - As less temporary variables as possible.
-- Auto enable move operations if compiler supports.
-- One scan all parsed.
+- Auto enable move operations if compiler supports to reduce memory copy.
+- Scan only once during parse.
 - Type-traits for value input and elegant cast between types.
-- No global mutex lock (compare with bxxst).
-- Transfer as is, as less encoding & decoding operations as possible.
+- High-concurrency support. No global mutex lock (compare with bxxst).
+- Transfer as-is, as less en(de)coding operations as possible.
+- Hardcode en(de)coding, without depends of library like iconv or system APIs.
 
 ### Examples
 
@@ -40,5 +41,6 @@
 
 ### Misc
 
-- Please feel free to use xpjson. Looking forward to your suggestions.
+- Please feel free to use xpjson.
+- Looking forward to your suggestions.
 - You can show your project or company here by creating a issue or let we know.
