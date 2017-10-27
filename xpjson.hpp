@@ -87,8 +87,8 @@ using namespace std;
 #	define JSON_TSTRING(type)			basic_string<type>
 #endif
 
-#define JSON_ASSERT_CHECK0(expression, what)			\
-	if(!(expression)) {throw std::logic_error(what);}
+#define JSON_ASSERT_CHECK(expression, exception_type, what)	\
+	if(!(expression)) {throw exception_type(what);}
 #define JSON_ASSERT_CHECK1(expression, fmt, arg1)		\
 	if(!(expression)) {char what[0x100] = {0}; sprintf(what, fmt, arg1); throw std::logic_error(what);}
 #define JSON_ASSERT_CHECK2(expression, fmt, arg1, arg2)	\
@@ -477,7 +477,9 @@ namespace JSON
 		inline typename detail::json_enable_if<detail::json_is_integral<T>::value, ValueT<char_t>&>::type
 		operator[](T pos)
 		{
+			JSON_ASSERT_CHECK(pos >= 0, std::underflow_error, "Array index underflow");
 			JSON_CHECK_TYPE(_type, ARRAY);
+			if (pos >= _array.size()) _array.resize(pos + 1);
 			return _array[pos];
 		}
 
@@ -693,7 +695,7 @@ namespace JSON
 				const size_t len = out.length();
 				out.resize(len + bufSize);
 				int ret = fmter(&out[0] + len, bufSize, fmt, v);
-				if(ret == bufSize || ret < 0) JSON_ASSERT_CHECK0(false, "Format error.");
+				if(ret == bufSize || ret < 0) JSON_ASSERT_CHECK(false, std::runtime_error, "Format error.");
 				out.resize(len + ret);
 			}
 

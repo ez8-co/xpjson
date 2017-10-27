@@ -546,15 +546,25 @@ TEST(ut_xpjsonW, bracket_operator)
 		a.a().push_back(2);
 		a.a().push_back(3);
 		for(unsigned char i = 0; i < a.a().size(); ++i) {
-			a[i] = i;
+			ASSERT_TRUE(a[i] == i + 1);
 		}
 		for(uint i = 0; i < a.a().size(); ++i) {
 			a[i] = i;
 		}
-		a[0] = 0;
 		for(uint64_t i = 0; i < a.a().size(); ++i) {
 			ASSERT_TRUE(a[i] == i);
 		}
+
+		// auto expand test
+		a[4] = 4;
+		a[5] = 5;
+		ASSERT_TRUE(a[3].type() == JSON::NIL);
+		for(uint64_t i = 4; i < a.a().size(); ++i) {
+			ASSERT_TRUE(a[i] == i);
+		}
+
+		// underflow test
+		EXPECT_THROW(a[-1], std::underflow_error);
 	}
 	catch(std::exception &e) {
 		printf("Error : %s.", e.what());
