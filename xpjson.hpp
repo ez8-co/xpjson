@@ -24,12 +24,14 @@ SOFTWARE.
 
 #pragma once
 
+#include <cstdio>
+#include <cstdlib>
 #include <string>
 #include <vector>
 #include <map>
 #include <cmath>
 #include <cfloat>
-#include <exception>
+#include <stdexcept>
 using namespace std;
 
 // support redundant dangling comma like : [1,]  {"a":"b",}
@@ -291,11 +293,11 @@ namespace JSON
 		void assign(ValueT<char_t>&& v);
  		// Fix: use swap rather than operator= to avoid bug under VS2010
 		/** Assign function from STD string  */
-		inline void assign(tstring&& s, bool needConv = true) {clear(STRING); _string.swap(JSON_MOVE(s)); _needConv = needConv;}
+		inline void assign(tstring&& s, bool needConv = true) {clear(STRING); _string.clear(); _string.swap(JSON_MOVE(s)); _needConv = needConv;}
 		/** Assign function from pointer to Object. */
-		inline void assign(ObjectT<char_t>&& o) {clear(OBJECT); _object.swap(JSON_MOVE(o));}
+		inline void assign(ObjectT<char_t>&& o) {clear(OBJECT); _object.clear(); _object.swap(JSON_MOVE(o));}
 		/** Assign function from pointer to Array. */
-		inline void assign(ArrayT<char_t>&& a) {clear(ARRAY); _array.swap(JSON_MOVE(a));}
+		inline void assign(ArrayT<char_t>&& a) {clear(ARRAY); _array.clear(); _array.swap(JSON_MOVE(a));}
 #endif
 
 		/** Assignment operator. */
@@ -477,6 +479,7 @@ namespace JSON
 		inline typename detail::json_enable_if<detail::json_is_integral<T>::value, ValueT<char_t>&>::type
 		operator[](T pos)
 		{
+			if(_type == NIL) _type = ARRAY;
 			JSON_ASSERT_CHECK(pos >= 0, std::underflow_error, "Array index underflow");
 			JSON_CHECK_TYPE(_type, ARRAY);
 			if (pos >= _array.size()) _array.resize(pos + 1);
@@ -663,9 +666,9 @@ namespace JSON
 			case INTEGER: _integer = v._integer; break;
 			case FLOAT:   _float = v._float; break;
 			case BOOLEAN: _boolean = v._boolean; break;
-			case STRING:  _needConv = v._needConv; _string = JSON_MOVE(v._string); break;
-			case ARRAY:   _array = JSON_MOVE(v._array); break;
-			case OBJECT:  _object = JSON_MOVE(v._object); break;
+			case STRING:  _needConv = v._needConv; _string.swap(v._string); break;
+			case ARRAY:   _array.swap(v._array); break;
+			case OBJECT:  _object.swap(v._object); break;
 		}
 		v._type = NIL;
 	}
