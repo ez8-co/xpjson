@@ -8,7 +8,7 @@
 - Easy-to-use: it's STL-based, and designed to be used without extra studies.
 - Easy-to-assemble: only a tiny header file needs to be included.
 - No dependencies: unless STL and std c libraries.
-- Compatiblites: 
+- Compatiblities: 
   - Encoding-friendly: support popular encodings, like ASCII, UTF8, GBK, GB2312, BIG 5, UTF16, UTF32, UCS-2, UCS-4.
   - OS-friendly: portable for popular platforms, like linux and windows.
   - Compiler-friendly: upward support old version of C++, and forward support for new features.
@@ -76,13 +76,11 @@ int main()
 }
 ```
 
-- The author is writing and updating everyday...
-
-- Just wait in patient.
+- The author is writing and updating everyday. Just wait in patient...
 
 ### Benchmark
 
-- <UNDER CONSTRUCTION>
+- \<UNDER CONSTRUCTION\>
 
 ### Performance-purpose Details
 
