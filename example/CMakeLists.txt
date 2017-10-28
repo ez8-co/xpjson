@@ -26,3 +26,5 @@ ENDIF (CMAKE_SYSTEM_NAME MATCHES "Linux")
 ADD_EXECUTABLE(xpjson_example1 "example1.cpp")
 
 ADD_EXECUTABLE(xpjson_example2 "example2.cpp")
+
+ADD_EXECUTABLE(xpjson_example3 "example3.cpp")

@@ -10,6 +10,7 @@ int main()
 	personalities["name"] = "Zhang Wei";
 	personalities["sex"] = "male";
 	personalities["company"] = "ez8.co";
+	personalities["age"] = 28;
 
 	JSON::Array& skills = orca["skills"].a();
 	skills.reserve(3);

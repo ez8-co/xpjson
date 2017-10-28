@@ -27,6 +27,7 @@ SOFTWARE.
 #include <cstdio>
 #include <cstdlib>
 #include <string>
+#include <cstring>
 #include <vector>
 #include <map>
 #include <cmath>
