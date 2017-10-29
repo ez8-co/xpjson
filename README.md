@@ -195,7 +195,6 @@ python
 
 ### TODO
 
-- Structure data size optimization.
 - New *readv* method by passing *iovec* param.
 - Small string optimization (SSO) support.
 - Direct memory access (DMA) support for string.
@@ -203,7 +202,7 @@ python
 
 ### WIP
 
-- Support escaped key.
+- Structure data size optimization.
 
 ### Misc
 

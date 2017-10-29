@@ -226,6 +226,11 @@ TEST(ut_xpjson, read)
 			ASSERT_TRUE(JSON::Reader::read(v, in.c_str(), in.length()) == in.length());
 		}
 
+		// case 10 escaped key
+		in = "{\"aa\\b\":\"b\"}";
+		ASSERT_TRUE(JSON::Reader::read(v, in.c_str(), in.length()) == in.length());
+		ASSERT_TRUE(v["aa\b"].s() == "b");
+
 		// exception cases
 		// case 1 bracket not match
 		in = "{\"a\":\"b\"";
@@ -260,12 +265,12 @@ TEST(ut_xpjson, read)
 		in = "{ \b\f\r\n\taaa";
 		EXPECT_THROW(JSON::Reader::read(v, in.c_str(), in.length()), std::logic_error);
 
-		// case 5 key not support escape
-		in = "{\"aa\\b\":\"b\"}";
+		// case 5 colon after key
+		in = "{\"a\" \b\n\r\f\t a}";
 		EXPECT_THROW(JSON::Reader::read(v, in.c_str(), in.length()), std::logic_error);
 
-		// case 6 colon after key
-		in = "{\"a\" \b\n\r\f\t a}";
+		// case 6 uncompleted escaped key
+		in = "{\"aa\\b";
 		EXPECT_THROW(JSON::Reader::read(v, in.c_str(), in.length()), std::logic_error);
 
 		// case 7 invalid value characters

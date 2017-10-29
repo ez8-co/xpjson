@@ -1065,7 +1065,7 @@ namespace JSON
 					}
 					break;
 				case NORMAL:
-					if(!_needConv)  _needConv = detail::check_need_conv<char_t>(in[pos]);
+					if(!_needConv) _needConv = detail::check_need_conv<char_t>(in[pos]);
 					if(in[pos] == '\"' && in[pos - 1] != '\\') {
 						if(_needConv) detail::decode(in + start, pos - start, _string);
 						else _string.assign(in + start, pos - start);
@@ -1286,7 +1286,18 @@ GOTO_END:
 					break;
 				case OBJECT_PAIR_KEY_QUOTE:
 					switch(in[pos]) {
-						case '\\': JSON_PARSE_CHECK(false);
+						case '\\':
+							while(++pos < len) {
+								if(in[pos] == '\"' && in[pos - 1] != '\\') {
+									state = OBJECT_PAIR_KEY;
+									JSON_TSTRING(char_t) key;
+									detail::decode(in + u.start, pos - u.start, key);
+									pv.push_back(&pv.back()->_object[JSON_MOVE(key)]);
+									break;
+								}
+							}
+							JSON_PARSE_CHECK(state == OBJECT_PAIR_KEY);
+							break;
 						case '\"':
 							state = OBJECT_PAIR_KEY;
 							// Insert a value
@@ -1380,7 +1391,7 @@ GOTO_END:
 		typename ObjectT<char_t>::const_iterator it_end = o.end();
 		while(it != it_end) {
 			out += '\"';
-			out += it->first;
+			detail::encode(it->first.c_str(), it->first.length(), out);
 			out += '\"';
 			out += ':';
 			it->second.write(out);
