@@ -725,32 +725,37 @@ namespace JSON
 
 			char int_to_hex(int n) {return n["0123456789abcdef"];}
 
-			void to_hex(int ch, JSON_TSTRING(wchar_t)& out)
+			template<class char_t>
+			void to_hex(int ch, JSON_TSTRING(char_t)& out)
 			{
 				out += int_to_hex((ch >> 4) & 0xF);
 				out += int_to_hex(ch & 0xF);
 			}
 
-			template<int size> void encode_unicode(wchar_t ch, JSON_TSTRING(wchar_t)& out);
+			template<int size, class char_t> void encode_unicode(char_t ch, JSON_TSTRING(char_t)& out);
+			template<> void encode_unicode<1, char>(char ch, JSON_TSTRING(char)& out)
+			{
+				out += '\\'; out += 'u'; out += '0'; out += '0';
+				to_hex(ch, out);
+			}
 
 			// For UTF16 Encoding
-			template<> void encode_unicode<2>(wchar_t ch, JSON_TSTRING(wchar_t)& out)
+			template<> void encode_unicode<2, wchar_t>(wchar_t ch, JSON_TSTRING(wchar_t)& out)
 			{
-				out += '\\';
-				out += 'u';
+				out += '\\'; out += 'u';
 				to_hex((ch >> 8) & 0xFF, out);
 				to_hex(ch & 0xFF, out);
 			}
 
 			// For UTF32 Encoding
-			template<> void encode_unicode<4>(wchar_t ch, JSON_TSTRING(wchar_t)& out)
+			template<> void encode_unicode<4, wchar_t>(wchar_t ch, JSON_TSTRING(wchar_t)& out)
 			{
 				if(ch > 0xFFFF) {
 					ch = static_cast<int>(ch) - 0x10000;
-					encode_unicode<2>(static_cast<unsigned short>(0xD800 |(ch >> 10)), out);
-					encode_unicode<2>(static_cast<unsigned short>(0xDC00 |(ch & 0x03FF)), out);
+					encode_unicode<2, wchar_t>(static_cast<unsigned short>(0xD800 |(ch >> 10)), out);
+					encode_unicode<2, wchar_t>(static_cast<unsigned short>(0xDC00 |(ch & 0x03FF)), out);
 				}
-				else encode_unicode<2>(static_cast<unsigned short>(ch), out);
+				else encode_unicode<2, wchar_t>(static_cast<unsigned short>(ch), out);
 			}
 
 			void encode(const char* in, size_t len, JSON_TSTRING(char)& out)
@@ -765,6 +770,9 @@ namespace JSON
 						case '\n': out += "\\n";  break;
 						case '\r': out += "\\r";  break;
 						case '\t': out += "\\t";  break;
+						case 0:case 1:case 2:case 3:case 4:case 5:case 6:case 7:
+						case 11:case 14:case 15:case 16:case 17:case 18:case 19:
+							encode_unicode<sizeof(char), char>(*in, out); break;
 						default:   out += *in; break;
 					}
 					++in;
@@ -774,7 +782,7 @@ namespace JSON
 			void encode(const wchar_t* in, size_t len, JSON_TSTRING(wchar_t)& out)
 			{
 				while(len--) {
-					if(*in > 0x7F) encode_unicode<sizeof(wchar_t)>(*in, out);
+					if(*in > 0x7F) encode_unicode<sizeof(wchar_t), wchar_t>(*in, out);
 					else {
 						switch(*in) {
 							case '\"': out += L"\\\""; break;
@@ -785,6 +793,9 @@ namespace JSON
 							case '\n': out += L"\\n";  break;
 							case '\r': out += L"\\r";  break;
 							case '\t': out += L"\\t";  break;
+							case 0:case 1:case 2:case 3:case 4:case 5:case 6:case 7:
+							case 11:case 14:case 15:case 16:case 17:case 18:case 19:
+								encode_unicode<sizeof(wchar_t), wchar_t>(*in, out); break;
 							default:   out += *in; break;
 						}
 					}
@@ -926,8 +937,8 @@ namespace JSON
 			template<> double ttod<wchar_t>(const wchar_t* in, wchar_t** end) {return wcstod(in, end);}
 
 			template<class char_t> bool check_need_conv(char_t ch);
-			template<> inline bool check_need_conv<char>(char ch) {return ch == '\\';}
-			template<> inline bool check_need_conv<wchar_t>(wchar_t ch) {return ch == '\\' || ch > 127;}
+			template<> inline bool check_need_conv<char>(char ch) {return ch == '\\' || ch < 0x20;}
+			template<> inline bool check_need_conv<wchar_t>(wchar_t ch) {return ch == '\\' || ch < 0x20 || ch > 0x7F;}
 
 			/*
 			 * May suffer performance degradation, use `find` or `count + []` then call o() to get reference instead.
