@@ -1,6 +1,8 @@
 
 ### What is xpjson?
 
+[![license](https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat)](https://github.com/ez8-co/xpjson/blob/master/LICENSE)
+
 - A minimal Xross-Platform/Xtreme-Performance JSON serialization & deserialization library in C++.
 
 ### Why use xpjson?
@@ -14,6 +16,8 @@
   - **Compiler-friendly**: upward support old version of C++, and forward support for new features.
 - **High-performance & high-concurrency** aimed.
 - **100K scenario** validated till now in commercial distributed application service.
+- **Elegant casting** between types, like string to integer, string to float, integer to string, and etc.
+- **NULL** in string value supports.
 
 ### Examples
 
@@ -34,6 +38,8 @@
     }
 }
 ```
+
+#### serialization example
 
 - You can rapidly start serialization by according to following example.
 
@@ -101,6 +107,8 @@ int main()
   return 0;
 }
 ```
+
+#### deserialization example
 
 - And you can deserialize the stream by according to following example.
 
@@ -187,16 +195,15 @@ python
 
 ### TODO
 
-- Data size optimization.
+- Structure data size optimization.
 - New *readv* method by passing *iovec* param.
 - Small string optimization (SSO) support.
-- DMA (direct memory access) support for string.
+- Direct memory access (DMA) support for string.
 - Reader & Writer for file.
 
 ### WIP
 
 - Support escaped key.
-- Escape unprintable characters.
 
 ### Misc
 
