@@ -17,17 +17,9 @@ int main()
 
 	cout << "Personalities:" << endl;
 	for(JSON::Object::const_iterator it=personalities.begin(); it!=personalities.end(); ++it) {
-		cout << it->first << " -> ";
-		switch(it->second.type()) {
-			case JSON::INTEGER:
-				cout << it->second.i() << endl;
-				break;
-			case JSON::STRING:
-				cout << it->second.s() << endl;
-				break;
-			default:
-				break;
-		}
+		string out;
+		it->second.to_string(out);
+		cout << it->first << " -> " << out << endl;
 	}
 
 	cout << endl << "Skills:" << endl;

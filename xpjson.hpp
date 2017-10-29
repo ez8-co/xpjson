@@ -499,6 +499,8 @@ namespace JSON
 		/** Write value to stream. */
 		void write(tstring& out) const;
 
+		void to_string(tstring& out) const;
+
 		/**
 			Read object/array from stream.
 			Return char_t count(offset) parsed.
@@ -1044,6 +1046,14 @@ namespace JSON
 
 	template<class char_t>
 	void ValueT<char_t>::write(tstring& out) const
+	{
+		if(_type == STRING) out += '\"';
+		to_string(out);
+		if(_type == STRING) out += '\"';
+	}
+
+	template<class char_t>
+	void ValueT<char_t>::to_string(tstring& out) const
 	{
 		switch(_type) {
 			case NIL:     out += detail::nil_null<char_t>(); break;

@@ -10,7 +10,7 @@
 - **Easy-to-use**: it's STL-based, and designed to be used without extra studies.
 - **Easy-to-assemble**: only a tiny header file needs to be included.
 - **No dependencies**: unless STL and std c libraries.
-- According to **RFC 7159 - The JavaScript Object Notation (JSON) Data Interchange Format**.
+- According to [**RFC 7159 - The JavaScript Object Notation (JSON) Data Interchange Format**](https://tools.ietf.org/html/rfc7159).
 - **Compatiblities**: 
   - **Encoding-friendly**: support popular encodings, like ASCII, UTF8, GBK, GB2312, BIG 5, UTF16, UTF32, UCS-2, UCS-4.
   - **OS-friendly**: portable for popular platforms, like linux and windows.
@@ -134,17 +134,9 @@ int main()
 
   cout << "Personalities:" << endl;
   for(JSON::Object::const_iterator it=personalities.begin(); it!=personalities.end(); ++it) {
-    cout << it->first << " -> ";
-    switch(it->second.type()) {
-      case JSON::INTEGER:
-        cout << it->second.i() << endl;
-        break;
-      case JSON::STRING:
-        cout << it->second.s() << endl;
-        break;
-      default:
-        break;
-    }
+    string out;
+    it->second.to_string(out);
+    cout << it->first << " -> " << out << endl;
   }
 
   cout << endl << "Skills:" << endl;
