@@ -63,39 +63,37 @@ private:
 void create(JSON::Value& v)
 {
 	JSON::Object& media = v["media"].o();
-	media.insert(make_pair(JSON_MOVE(JSON_TSTRING(char)("uri")), JSON_MOVE(JSON::Value(JSON_MOVE(JSON_TSTRING(char)("http://javaone.com/keynote.mpg")), false))));
-	media.insert(make_pair(JSON_MOVE(JSON_TSTRING(char)("title")), JSON_MOVE(JSON::Value(JSON_MOVE(JSON_TSTRING(char)("Javaone Keynote")), false))));
-	media.insert(make_pair(JSON_MOVE(JSON_TSTRING(char)("width")), JSON_MOVE(JSON::Value(640))));
-	media.insert(make_pair(JSON_MOVE(JSON_TSTRING(char)("height")), JSON_MOVE(JSON::Value(480))));
-	media.insert(make_pair(JSON_MOVE(JSON_TSTRING(char)("format")), JSON_MOVE(JSON::Value(JSON_MOVE(JSON_TSTRING(char)("video/mpg4")), false))));
-	media.insert(make_pair(JSON_MOVE(JSON_TSTRING(char)("duration")), JSON_MOVE(JSON::Value(1800000))));
-	media.insert(make_pair(JSON_MOVE(JSON_TSTRING(char)("size")), JSON_MOVE(JSON::Value(58982400))));
-	media.insert(make_pair(JSON_MOVE(JSON_TSTRING(char)("bitrate")), JSON_MOVE(JSON::Value(262144))));
+	media["uri"].assign("http://javaone.com/keynote.mpg", false);
+	media["title"].assign("Javaone Keynote", false);
+	media["width"] = 640;
+	media["height"] = 480;
+	media["format"].assign("video/mpg4", false);
+	media["duration"] = 1800000;
+	media["size"] = 58982400;
+	media["bitrate"] = 262144;
+	media["player"].assign("JAVA", false);
 
 	JSON::Array& persons = media["persons"].a();
-	persons.push_back(JSON_MOVE(JSON::Value(JSON_MOVE(JSON_TSTRING(char)("Bill Gates")), false)));
-	persons.push_back(JSON_MOVE(JSON::Value(JSON_MOVE(JSON_TSTRING(char)("Steve Jobs")), false)));
-
-	media["player"] = JSON_MOVE(JSON::Value(JSON_MOVE(JSON_TSTRING(char)("JAVA")), false));
-	media["copyright"];
+	persons.resize(2);
+	persons[0].assign("Bill Gates", false);
+	persons[1].assign("Steve Jobs", false);
 
 	JSON::Array& images = v["images"].a();
-	images.push_back(JSON_MOVE(JSON::Value(JSON_MOVE(JSON::Object()))));
-	images.push_back(JSON_MOVE(JSON::Value(JSON_MOVE(JSON::Object()))));
-
+	images.resize(2);
+	
 	JSON::Object& image1 = images[0].o();
-	image1.insert(make_pair(JSON_MOVE(JSON_TSTRING(char)("uri")), JSON_MOVE(JSON::Value(JSON_MOVE(JSON_TSTRING(char)("http://javaone.com/keynote_large.jpg")), false))));
-	image1.insert(make_pair(JSON_MOVE(JSON_TSTRING(char)("title")), JSON_MOVE(JSON::Value(JSON_MOVE(JSON_TSTRING(char)("Javaone Keynote")), false))));
-	image1.insert(make_pair(JSON_MOVE(JSON_TSTRING(char)("width")), JSON_MOVE(JSON::Value(1024))));
-	image1.insert(make_pair(JSON_MOVE(JSON_TSTRING(char)("height")), JSON_MOVE(JSON::Value(768))));
-	image1.insert(make_pair(JSON_MOVE(JSON_TSTRING(char)("size")), JSON_MOVE(JSON::Value(JSON_MOVE(JSON_TSTRING(char)("LARGE"))))));
+	image1["uri"].assign("http://javaone.com/keynote_large.jpg", false);
+	image1["title"].assign("Javaone Keynote", false);
+	image1["width"] = 1024;
+	image1["height"] = 768;
+	image1["size"].assign("LARGE", false);
 
 	JSON::Object& image2 = images[1].o();
-	image2.insert(make_pair(JSON_MOVE(JSON_TSTRING(char)("uri")), JSON_MOVE(JSON::Value(JSON_MOVE(JSON_TSTRING(char)("http://javaone.com/keynote_small.jpg")), false))));
-	image2.insert(make_pair(JSON_MOVE(JSON_TSTRING(char)("title")), JSON_MOVE(JSON::Value(JSON_MOVE(JSON_TSTRING(char)("Javaone Keynote")), false))));
-	image2.insert(make_pair(JSON_MOVE(JSON_TSTRING(char)("width")), JSON_MOVE(JSON::Value(320))));
-	image2.insert(make_pair(JSON_MOVE(JSON_TSTRING(char)("height")), JSON_MOVE(JSON::Value(240))));
-	image2.insert(make_pair(JSON_MOVE(JSON_TSTRING(char)("size")), JSON_MOVE(JSON::Value(JSON_MOVE(JSON_TSTRING(char)("SMALL")), false))));
+	image2["uri"].assign("http://javaone.com/keynote_small.jpg", false);
+	image2["title"].assign("Javaone Keynote", false);
+	image2["width"] = 320;
+	image2["height"] = 240;
+	image2["size"].assign("SMALL", false);
 }
 
 TEST(benchmark_xpjson, create)
@@ -111,7 +109,7 @@ TEST(benchmark_xpjson, create)
 			v.clear();
 		}
 		while (--times);
-		printf("time cost: %"PRId64"ms\n", tc.timecost());
+		printf("time cost: %" PRId64 "ms\n", tc.timecost());
 	}
 	catch(std::exception &e) {
 		printf("Error : %s.", e.what());
@@ -135,7 +133,7 @@ TEST(benchmark_xpjson, write)
 			tc.end();
 		}
 		while (--times);
-		printf("time cost: %"PRId64"ms\n", tc.timecost());
+		printf("time cost: %" PRId64 "ms\n", tc.timecost());
 	}
 	catch(std::exception &e) {
 		printf("Error : %s.", e.what());
@@ -156,7 +154,7 @@ TEST(benchmark_xpjson, read)
 			tc.end();
 		}
 		while (--times);
-		printf("time cost: %"PRId64"ms\n", tc.timecost());
+		printf("time cost: %" PRId64 "ms\n", tc.timecost());
 	}
 	catch(std::exception &e) {
 		printf("Error : %s.", e.what());
