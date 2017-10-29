@@ -173,13 +173,13 @@ namespace JSON
 	/** JSON type of a value. */
 	enum Type
 	{
+		NIL,        // Null
+		BOOLEAN,    // Boolean(true, false)
 		INTEGER,    // Integer
 		FLOAT,      // Float 3.14 12e-10
-		BOOLEAN,    // Boolean(true, false)
 		STRING,     // String " ... "
 		OBJECT,     // Object {...}
-		ARRAY,      // Array [ ... ]
-		NIL         // Null
+		ARRAY       // Array  [ ... ]
 	};
 
 	inline const char* get_type_name(int type);
@@ -219,8 +219,10 @@ namespace JSON
 		/** Copy constructor. */
 		ValueT(const ValueT<char_t>& v) : _type(NIL) {assign(v);}
 
+		/** Constructor from bool. */
+		ValueT(bool b) : _type(BOOLEAN), _b(b) {}
 		/** Constructor from integer. */
-#define JSON_INTEGER_CTOR(type)		ValueT(type i) : _type(INTEGER), _integer(i) {}
+#define JSON_INTEGER_CTOR(type)		ValueT(type i) : _type(INTEGER), _i(i) {}
 		JSON_INTEGER_CTOR(unsigned char)
 		JSON_INTEGER_CTOR(signed char)
 #ifdef _NATIVE_WCHAR_T_DEFINED
@@ -238,67 +240,65 @@ namespace JSON
 		JSON_INTEGER_CTOR(int64_t)
 #undef JSON_INTEGER_CTOR
 		/** Constructor from float. */
-#define JSON_FLOAT_CTOR(type)		ValueT(type f) : _type(FLOAT), _float(f) {}
+#define JSON_FLOAT_CTOR(type)		ValueT(type f) : _type(FLOAT), _f(f) {}
 		JSON_FLOAT_CTOR(float)
 		JSON_FLOAT_CTOR(double)
 		JSON_FLOAT_CTOR(long double)
 #undef JSON_FLOAT_CTOR
 
-		/** Constructor from bool. */
-		ValueT(bool b) : _type(BOOLEAN), _boolean(b) {}
 		/** Constructor from pointer to char(C-string).  */
-		ValueT(const char_t* s, bool needConv = true) : _type(STRING), _needConv(needConv), _string(s) {}
+		ValueT(const char_t* s, bool escape = true) : _type(STRING), _e(escape), _s(s) {}
 		/** Constructor from pointer to char(C-string).  */
-		ValueT(const char_t* s, size_t l, bool needConv = true) : _type(STRING), _needConv(needConv), _string(s, l) {}
+		ValueT(const char_t* s, size_t l, bool escape = true) : _type(STRING), _e(escape), _s(s, l) {}
 		/** Constructor from STD string  */
-		ValueT(const tstring& s, bool needConv = true) : _type(STRING), _needConv(needConv), _string(s) {}
+		ValueT(const tstring& s, bool escape = true) : _type(STRING), _e(escape), _s(s) {}
 		/** Constructor from pointer to Object. */
-		ValueT(const ObjectT<char_t>& o) : _type(OBJECT), _object(o) {}
+		ValueT(const ObjectT<char_t>& o) : _type(OBJECT), _o(o) {}
 		/** Constructor from pointer to Array. */
-		ValueT(const ArrayT<char_t>& a) : _type(ARRAY), _array(a) {}
+		ValueT(const ArrayT<char_t>& a) : _type(ARRAY), _a(a) {}
 #ifdef __XPJSON_SUPPORT_MOVE__
 		/** Move constructor. */
 		ValueT(ValueT<char_t>&& v) : _type(v._type) {assign(JSON_MOVE(v));}
 		/** Move constructor from STD string  */
-		ValueT(tstring&& s, bool needConv = true) : _type(STRING), _string(JSON_MOVE(s)), _needConv(needConv) {}
+		ValueT(tstring&& s, bool escape = true) : _type(STRING), _s(JSON_MOVE(s)), _e(escape) {}
 		/** Move constructor from pointer to Object. */
-		ValueT(ObjectT<char_t>&& o) : _type(OBJECT), _object(JSON_MOVE(o)) {}
+		ValueT(ObjectT<char_t>&& o) : _type(OBJECT), _o(JSON_MOVE(o)) {}
 		/** Move constructor from pointer to Array. */
-		ValueT(ArrayT<char_t>&& a) : _type(ARRAY), _array(JSON_MOVE(a)) {}
+		ValueT(ArrayT<char_t>&& a) : _type(ARRAY), _a(JSON_MOVE(a)) {}
 #endif
 
 		/** Assign function. */
 		void assign(const ValueT<char_t>& v);
+		/** Assign function from bool. */
+		inline void assign(bool b) {clear(BOOLEAN); _b = b;}
 		/** Assign function from integer. */
 		template<class T>
 		inline typename detail::json_enable_if<detail::json_is_integral<T>::value>::type
-		assign(T i) {clear(INTEGER); _integer = i;}
+		assign(T i) {clear(INTEGER); _i = i;}
 		/** Assign function from float. */
 		template<class T>
 		inline typename detail::json_enable_if<detail::json_is_floating_point<T>::value>::type
-		assign(T f) {clear(FLOAT); _float = f;}
-		/** Assign function from bool. */
-		inline void assign(bool b) {clear(BOOLEAN); _boolean = b;}
+		assign(T f) {clear(FLOAT); _f = f;}
 		/** Assign function from pointer to char(C-string).  */
-		inline void assign(const char_t* s, bool needConv = true) {clear(STRING); _string.assign(s); _needConv = needConv;}
+		inline void assign(const char_t* s, bool escape = true) {clear(STRING); _s.assign(s); _e = escape;}
 		/** Assign function from pointer to char(C-string).  */
-		inline void assign(const char_t* s, size_t l, bool needConv = true) {clear(STRING); _string.assign(s, l); _needConv = needConv;}
+		inline void assign(const char_t* s, size_t l, bool escape = true) {clear(STRING); _s.assign(s, l); _e = escape;}
 		/** Assign function from STD string  */
-		inline void assign(const tstring& s, bool needConv = true) {clear(STRING); _string = s; _needConv = needConv;}
+		inline void assign(const tstring& s, bool escape = true) {clear(STRING); _s = s; _e = escape;}
 		/** Assign function from pointer to Object. */
-		inline void assign(const ObjectT<char_t>& o) {clear(OBJECT); _object = o;}
+		inline void assign(const ObjectT<char_t>& o) {clear(OBJECT); _o = o;}
 		/** Assign function from pointer to Array. */
-		inline void assign(const ArrayT<char_t>& a) {clear(ARRAY); _array = a;}
+		inline void assign(const ArrayT<char_t>& a) {clear(ARRAY); _a = a;}
 #ifdef __XPJSON_SUPPORT_MOVE__
 		/** Assign function. */
 		void assign(ValueT<char_t>&& v);
  		// Fix: use swap rather than operator= to avoid bug under VS2010
 		/** Assign function from STD string  */
-		inline void assign(tstring&& s, bool needConv = true) {clear(STRING); _string.clear(); _string.swap(JSON_MOVE(s)); _needConv = needConv;}
+		inline void assign(tstring&& s, bool escape = true) {clear(STRING); _s.clear(); _s.swap(JSON_MOVE(s)); _e = escape;}
 		/** Assign function from pointer to Object. */
-		inline void assign(ObjectT<char_t>&& o) {clear(OBJECT); _object.clear(); _object.swap(JSON_MOVE(o));}
+		inline void assign(ObjectT<char_t>&& o) {clear(OBJECT); _o.clear(); _o.swap(JSON_MOVE(o));}
 		/** Assign function from pointer to Array. */
-		inline void assign(ArrayT<char_t>&& a) {clear(ARRAY); _array.clear(); _array.swap(JSON_MOVE(a));}
+		inline void assign(ArrayT<char_t>&& a) {clear(ARRAY); _a.clear(); _a.swap(JSON_MOVE(a));}
 #endif
 
 		/** Assignment operator. */
@@ -331,9 +331,15 @@ namespace JSON
 		/** Type query. */
 		inline Type type(void) const {return _type;}
 
+		/** Cast operator for bool */
+		inline operator bool(void) const
+		{
+			JSON_CHECK_TYPE(_type, BOOLEAN);
+			return _b;
+		}
 		/** Cast operator for integer */
 #define JSON_INTEGER_OPERATOR(type)		\
-	inline operator type(void) const {JSON_CHECK_TYPE(_type, INTEGER);return _integer;}
+	inline operator type(void) const {JSON_CHECK_TYPE(_type, INTEGER);return _i;}
 		JSON_INTEGER_OPERATOR(unsigned char)
 		JSON_INTEGER_OPERATOR(signed char)
 #ifdef _NATIVE_WCHAR_T_DEFINED
@@ -352,128 +358,122 @@ namespace JSON
 #undef JSON_INTEGER_OPERATOR
 		/** Cast operator for float */
 #define JSON_FLOAT_OPERATOR(type)		\
-	inline operator type(void) const {JSON_CHECK_TYPE(_type, FLOAT);return _float;}
+	inline operator type(void) const {JSON_CHECK_TYPE(_type, FLOAT);return _f;}
 		JSON_FLOAT_OPERATOR(float)
 		JSON_FLOAT_OPERATOR(double)
 		JSON_FLOAT_OPERATOR(long double)
 #undef JSON_FLOAT_OPERATOR
-
-		/** Cast operator for bool */
-		inline operator bool(void) const
-		{
-			JSON_CHECK_TYPE(_type, BOOLEAN);
-			return _boolean;
-		}
 		/** Cast operator for STD string */
 		inline operator tstring(void) const
 		{
 			JSON_CHECK_TYPE(_type, STRING);
-			return _string;
+			return _s;
 		}
 		/** Cast operator for Object */
 		inline operator ObjectT<char_t>(void) const
 		{
 			JSON_CHECK_TYPE(_type, OBJECT);
-			return _object;
+			return _o;
 		}
 		/** Cast operator for Array */
 		inline operator ArrayT<char_t>(void) const
 		{
 			JSON_CHECK_TYPE(_type, ARRAY);
-			return _array;
+			return _a;
 		}
-		/** Fetch integer reference*/
-		inline int64_t& i(void)
-		{
-			if(_type == NIL) {_type = INTEGER; _integer = 0;}
-			JSON_CHECK_TYPE(_type, INTEGER);
-			return _integer;
-		}
-		/** Fetch integer value*/
-		inline int64_t i(void) const
-		{
-			JSON_CHECK_TYPE(_type, INTEGER);
-			return _integer;
-		}
-		/** Fetch float reference */
-		inline double& f(void)
-		{
-			if(_type == NIL) {_type = FLOAT; _float = 0;}
-			JSON_CHECK_TYPE(_type, FLOAT);
-			return _float;
-		}
-		/** Fetch float value */
-		inline long double f(void) const
-		{
-			JSON_CHECK_TYPE(_type, FLOAT);
-			return _float;
-		}
+
 		/** Fetch boolean reference */
 		inline bool& b(void)
 		{
-			if(_type == NIL) {_type = BOOLEAN; _boolean = false;}
+			if(_type == NIL) {_type = BOOLEAN; _b = false;}
 			JSON_CHECK_TYPE(_type, BOOLEAN);
-			return _boolean;
+			return _b;
 		}
 		/** Fetch boolean value */
 		inline bool b(void) const
 		{
 			JSON_CHECK_TYPE(_type, BOOLEAN);
-			return _boolean;
+			return _b;
+		}
+		/** Fetch integer reference*/
+		inline int64_t& i(void)
+		{
+			if(_type == NIL) {_type = INTEGER; _i = 0;}
+			JSON_CHECK_TYPE(_type, INTEGER);
+			return _i;
+		}
+		/** Fetch integer value*/
+		inline int64_t i(void) const
+		{
+			JSON_CHECK_TYPE(_type, INTEGER);
+			return _i;
+		}
+		/** Fetch float reference */
+		inline double& f(void)
+		{
+			if(_type == NIL) {_type = FLOAT; _f = 0;}
+			JSON_CHECK_TYPE(_type, FLOAT);
+			return _f;
+		}
+		/** Fetch float value */
+		inline long double f(void) const
+		{
+			JSON_CHECK_TYPE(_type, FLOAT);
+			return _f;
 		}
 		/** Fetch string reference */
 		inline tstring& s(void)
 		{
 			if(_type == NIL) _type = STRING;
-			_needConv = true; // the string may be modified by caller
+			_e = true; // the string may be modified by caller
 			JSON_CHECK_TYPE(_type, STRING);
-			return _string;
+			return _s;
 		}
 		/** Fetch string const-reference */
 		inline const tstring& s(void) const
 		{
 			JSON_CHECK_TYPE(_type, STRING);
-			return _string;
+			return _s;
 		}
 		/** Fetch object reference */
 		inline ObjectT<char_t>& o(void)
 		{
 			if(_type == NIL) _type = OBJECT;
 			JSON_CHECK_TYPE(_type, OBJECT);
-			return _object;
+			return _o;
 		}
 		/** Fetch object const-reference */
 		inline const ObjectT<char_t>& o(void) const
 		{
 			JSON_CHECK_TYPE(_type, OBJECT);
-			return _object;
+			return _o;
 		}
 		/** Fetch array reference */
 		inline ArrayT<char_t>& a(void)
 		{
 			if(_type == NIL) _type = ARRAY;
 			JSON_CHECK_TYPE(_type, ARRAY);
-			return _array;
+			return _a;
 		}
 		/** Fetch array const-reference */
 		inline const ArrayT<char_t>& a(void) const
 		{
 			JSON_CHECK_TYPE(_type, ARRAY);
-			return _array;
+			return _a;
 		}
 		/** Support [] operator for object. */
 		inline ValueT<char_t>& operator[](const char_t* key)
 		{
 			if(_type == NIL) _type = OBJECT;
 			JSON_CHECK_TYPE(_type, OBJECT);
-			return _object[key];
+			return _o[key];
 		}
 		/** Support [] operator for object. */
 		inline ValueT<char_t>& operator[](const tstring& key)
 		{
 			if(_type == NIL) _type = OBJECT;
 			JSON_CHECK_TYPE(_type, OBJECT);
-			return _object[key];
+			return _o[key];
 		}
 		/** Support [] operator for array. */
 		template<class T>
@@ -483,8 +483,8 @@ namespace JSON
 			if(_type == NIL) _type = ARRAY;
 			JSON_ASSERT_CHECK(pos >= 0, std::underflow_error, "Array index underflow");
 			JSON_CHECK_TYPE(_type, ARRAY);
-			if (pos >= _array.size()) _array.resize(pos + 1);
-			return _array[pos];
+			if (pos >= _a.size()) _a.resize(pos + 1);
+			return _a[pos];
 		}
 
 		/** Support get value of key with elegant cast, return default_value if key not exist. */
@@ -506,42 +506,28 @@ namespace JSON
 	protected:
 
 		/**
-			Read string from stream.
-			Return char_t count(offset) parsed.
-			NOTE: MUST with quotes.
-			If error occurred, throws an exception.
-		*/
-		size_t read_string(const char_t* in, size_t len);
-		/**
-			Read number from stream.
-			Return char_t count(offset) parsed.
-			If error occurred, throws an exception.
-		*/
-		size_t read_number(const char_t* in, size_t len);
-		/**
-			Read boolean from stream.
+			Read types from stream.
 			Return char_t count(offset) parsed.
 			If error occurred, throws an exception.
 		*/
 		size_t read_boolean(const char_t* in, size_t len);
-		/**
-			Read null from stream.
-			Return char_t count(offset) parsed.
-			If error occurred, throws an exception.
-		*/
+		/* NOTE: MUST with quotes.*/
+		size_t read_string(const char_t* in, size_t len);
+		size_t read_number(const char_t* in, size_t len);
 		size_t read_nil(const char_t* in, size_t len);
 
 		/** Indicate current value type. */
-		Type	_type;
+		Type _type : 4;
+		bool _e : 4; /* Used for string, indicates needs to be escaped or encoded. */
+		char _[7]; /* padding */
 		union {
-			int64_t  _integer;
-			double _float;
-			bool   _boolean;
-			bool   _needConv; /* Used for string. */
+			bool    _b;
+			int64_t _i;
+			double  _f;
 		};
-		tstring			_string;
-		ObjectT<char_t>	_object;
-		ArrayT<char_t>	_array;
+		tstring         _s;
+		ObjectT<char_t> _o;
+		ArrayT<char_t>  _a;
 	};
 
 	typedef ValueT<char>    Value;
@@ -576,38 +562,38 @@ namespace JSON
 	template<class char_t> inline bool operator!=(const ArrayT<char_t>& lhs, const ArrayT<char_t>& rhs) {return !operator==(lhs, rhs);}
 	template<class char_t> inline bool operator!=(const ValueT<char_t>& lhs, const ValueT<char_t>& rhs) {return !operator==(lhs, rhs);}
 
+	template<class char_t> inline bool operator==(const ValueT<char_t>& v, bool b) {return v.type() == BOOLEAN && b == v.b();}
 	template<class char_t, class T> inline typename detail::json_enable_if<detail::json_is_integral<T>::value, bool>::type
 	operator==(const ValueT<char_t>& v, T i) {return v.type() == INTEGER && i == v.i();}
 	template<class char_t, class T> inline typename detail::json_enable_if<detail::json_is_floating_point<T>::value, bool>::type
 	operator==(const ValueT<char_t>& v, T f) {return v.type() == FLOAT && fabs(f - v.f()) < JSON_EPSILON;}
-	template<class char_t> inline bool operator==(const ValueT<char_t>& v, bool b) {return v.type() == BOOLEAN && b == v.b();}
 	template<class char_t> inline bool operator==(const ValueT<char_t>& v, const ObjectT<char_t>& o) {return v.type() == OBJECT && o == v.o();}
 	template<class char_t> inline bool operator==(const ValueT<char_t>& v, const ArrayT<char_t>& a) {return v.type() == ARRAY && a == v.a();}
 	template<class char_t> inline bool operator==(const ValueT<char_t>& v, const JSON_TSTRING(char_t)& s) {return v.type() == STRING && s == v.s();}
 
+	template<class char_t> inline bool operator==(bool b, const ValueT<char_t>& v) {return operator==(v, b);}
 	template<class char_t, class T> inline typename detail::json_enable_if<detail::json_is_integral<T>::value, bool>::type
 	operator==(T i, const ValueT<char_t>& v) {return operator==(v, i);}
 	template<class char_t, class T> inline typename detail::json_enable_if<detail::json_is_floating_point<T>::value, bool>::type
 	operator==(T f, const ValueT<char_t>& v) {return operator==(v, f);}
-	template<class char_t> inline bool operator==(bool b, const ValueT<char_t>& v) {return operator==(v, b);}
 	template<class char_t> inline bool operator==(const ObjectT<char_t>& o, const ValueT<char_t>& v) {return operator==(v, o);}
 	template<class char_t> inline bool operator==(const ArrayT<char_t>& a, const ValueT<char_t>& v) {return operator==(v, a);}
 	template<class char_t> inline bool operator==(const JSON_TSTRING(char_t)& s, const ValueT<char_t>& v) {return operator==(v, s);}
 
+	template<class char_t> inline bool operator!=(const ValueT<char_t>& v, bool b) {return !operator==(v, b);}
 	template<class char_t, class T> inline typename detail::json_enable_if<detail::json_is_integral<T>::value, bool>::type
 	operator!=(const ValueT<char_t>& v, T i) {return !operator==(v, i);}
 	template<class char_t, class T> inline typename detail::json_enable_if<detail::json_is_floating_point<T>::value, bool>::type
 	operator!=(const ValueT<char_t>& v, T f) {return !operator==(v, f);}
-	template<class char_t> inline bool operator!=(const ValueT<char_t>& v, bool b) {return !operator==(v, b);}
 	template<class char_t> inline bool operator!=(const ValueT<char_t>& v, const ObjectT<char_t>& o) {return !operator==(v, o);}
 	template<class char_t> inline bool operator!=(const ValueT<char_t>& v, const ArrayT<char_t>& a) {return !operator==(v, a);}
 	template<class char_t> inline bool operator!=(const ValueT<char_t>& v, const JSON_TSTRING(char_t)& s) {return !operator==(v, s);}
 
+	template<class char_t> inline bool operator!=(bool b, const ValueT<char_t>& v) {return !operator==(v, b);}
 	template<class char_t, class T> inline typename detail::json_enable_if<detail::json_is_integral<T>::value, bool>::type
 	operator!=(T i, const ValueT<char_t>& v) {return !operator==(v, i);}
 	template<class char_t, class T> inline typename detail::json_enable_if<detail::json_is_floating_point<T>::value, bool>::type
 	operator!=(T f, const ValueT<char_t>& v) {return !operator==(v, f);}
-	template<class char_t> inline bool operator!=(bool b, const ValueT<char_t>& v) {return !operator==(v, b);}
 	template<class char_t> inline bool operator!=(const ObjectT<char_t>& o, const ValueT<char_t>& v) {return !operator==(v, o);}
 	template<class char_t> inline bool operator!=(const ArrayT<char_t>& a, const ValueT<char_t>& v) {return !operator==(v, a);}
 	template<class char_t> inline bool operator!=(const JSON_TSTRING(char_t)& s, const ValueT<char_t>& v) {return !operator==(v, s);}
@@ -619,9 +605,9 @@ namespace JSON
 	{
 		switch(type) {
 			case NIL:     return "Null";
+			case BOOLEAN: return "Boolean";
 			case INTEGER: return "Integer";
 			case FLOAT:   return "Float";
-			case BOOLEAN: return "Boolean";
 			case STRING:  return "String";
 			case OBJECT:  return "Object";
 			case ARRAY:   return "Array";
@@ -634,10 +620,10 @@ namespace JSON
 		: _type(type)
 	{
 		switch(_type) {
-			case INTEGER: _integer = 0;     break;
-			case FLOAT:   _float = 0;       break;
-			case BOOLEAN: _boolean = false; break;
-			case STRING:  _needConv = true; break;
+			case BOOLEAN: _b = false; break;
+			case INTEGER: _i = 0;     break;
+			case FLOAT:   _f = 0;     break;
+			case STRING:  _e = true; break;
 			default:      break;
 		}
 	}
@@ -648,12 +634,12 @@ namespace JSON
 		if(_type != v._type) clear(v._type);
 		switch(_type) {
 			case NIL:     _type = NIL; break;
-			case INTEGER: _integer = v._integer; break;
-			case FLOAT:   _float = v._float; break;
-			case BOOLEAN: _boolean = v._boolean; break;
-			case STRING:  _needConv = v._needConv; _string = v._string; break;
-			case ARRAY:   _array = v._array; break;
-			case OBJECT:  _object = v._object; break;
+			case BOOLEAN: _b = v._b; break;
+			case INTEGER: _i = v._i; break;
+			case FLOAT:   _f = v._f; break;
+			case STRING:  _e = v._e; _s = v._s; break;
+			case ARRAY:   _a = v._a; break;
+			case OBJECT:  _o = v._o; break;
 		}
 	}
 
@@ -664,12 +650,12 @@ namespace JSON
 		if(_type != v._type) clear(v._type);
 		switch(_type) {
 			case NIL:     _type = NIL; break;
-			case INTEGER: _integer = v._integer; break;
-			case FLOAT:   _float = v._float; break;
-			case BOOLEAN: _boolean = v._boolean; break;
-			case STRING:  _needConv = v._needConv; _string.swap(v._string); break;
-			case ARRAY:   _array.swap(v._array); break;
-			case OBJECT:  _object.swap(v._object); break;
+			case BOOLEAN: _b = v._b;   break;
+			case INTEGER: _i = v._i;   break;
+			case FLOAT:   _f = v._f;   break;
+			case STRING:  _e = v._e; _s.swap(v._s); break;
+			case ARRAY:   _a.swap(v._a); break;
+			case OBJECT:  _o.swap(v._o); break;
 		}
 		v._type = NIL;
 	}
@@ -679,9 +665,9 @@ namespace JSON
 	void ValueT<char_t>::clear(Type	type /*= NIL*/)
 	{
 		switch(_type) {
-			case STRING: _string.clear(); break;
-			case ARRAY:  _array.clear();  break;
-			case OBJECT: _object.clear(); break;
+			case STRING: _s.clear(); break;
+			case ARRAY:  _a.clear();  break;
+			case OBJECT: _o.clear(); break;
 			default: break;
 		}
 		_type = type;
@@ -976,9 +962,9 @@ namespace JSON
 			{
 				switch(v.type()) {
 					case NIL:     break;
+					case BOOLEAN: return T(v.b());
 					case INTEGER: return T(v.i());
 					case FLOAT:   return T(v.f());
-					case BOOLEAN: return T(v.b());
 					case STRING:
 						if(v.s() == boolean_true<char_t>()) return T(1);
 						else if(v.s() == boolean_false<char_t>()) return T(0);
@@ -1000,9 +986,9 @@ namespace JSON
 			{
 				switch(v.type()) {
 					case NIL:     break;
+					case BOOLEAN: return T(v.b() ? detail::boolean_true<char_t>() : detail::boolean_false<char_t>());
 					case INTEGER: return to_string<int64_t, char_t>(v.i());
 					case FLOAT:   return to_string<double, char_t>(v.f());
-					case BOOLEAN: return T(v.b() ? detail::boolean_true<char_t>() : detail::boolean_false<char_t>());
 					case STRING:  return T(v.s());
 					default: JSON_ASSERT_CHECK1(false, "Type-casting error: from (%s) type to string.", get_type_name(v.type()));
 				}
@@ -1015,8 +1001,8 @@ namespace JSON
 	T JSON::ValueT<char_t>::get(const tstring& key, const T& default_value) const
 	{
 		JSON_CHECK_TYPE(_type, OBJECT);
-		typename ObjectT<char_t>::const_iterator it = _object.find(key);
-		if(it != _object.end()) return JSON_MOVE((detail::internal_type_casting <char_t, T>(it->second, default_value)));
+		typename ObjectT<char_t>::const_iterator it = _o.find(key);
+		if(it != _o.end()) return JSON_MOVE((detail::internal_type_casting <char_t, T>(it->second, default_value)));
 		return T(default_value);
 	}
 
@@ -1024,18 +1010,18 @@ namespace JSON
 	void ValueT<char_t>::write(tstring& out) const
 	{
 		switch(_type) {
-			case NIL:     out += detail::nil_null<char_t>();    break;
-			case INTEGER: detail::to_string(_integer, out);     break;
-			case FLOAT:   detail::to_string(_float, out);       break;
-			case ARRAY:   WriterT<char_t>::write(_array, out);  break;
-			case OBJECT:  WriterT<char_t>::write(_object, out); break;
+			case NIL:     out += detail::nil_null<char_t>(); break;
+			case INTEGER: detail::to_string(_i, out);        break;
+			case FLOAT:   detail::to_string(_f, out);        break;
+			case ARRAY:   WriterT<char_t>::write(_a, out);   break;
+			case OBJECT:  WriterT<char_t>::write(_o, out);   break;
 			case BOOLEAN:
-				out += (_boolean ? detail::boolean_true<char_t>() : detail::boolean_false<char_t>());
+				out += (_b ? detail::boolean_true<char_t>() : detail::boolean_false<char_t>());
 				break;
 			case STRING:
 				out += '\"';
-				if(_needConv) detail::encode(_string.c_str(), _string.length(), out);
-				else out += _string;
+				if(_e) detail::encode(_s.c_str(), _s.length(), out);
+				else out += _s;
 				out += '\"';
 				break;
 		}
@@ -1054,7 +1040,7 @@ namespace JSON
 		size_t pos = 0;
 		size_t start = 0;
 		clear(STRING);
-		_needConv = false;
+		_e = false;
 		while(pos < len) {
 			switch(state) {
 				case NONE:
@@ -1065,10 +1051,10 @@ namespace JSON
 					}
 					break;
 				case NORMAL:
-					if(!_needConv) _needConv = detail::check_need_conv<char_t>(in[pos]);
+					if(!_e) _e = detail::check_need_conv<char_t>(in[pos]);
 					if(in[pos] == '\"' && in[pos - 1] != '\\') {
-						if(_needConv) detail::decode(in + start, pos - start, _string);
-						else _string.assign(in + start, pos - start);
+						if(_e) detail::decode(in + start, pos - start, _s);
+						else _s.assign(in + start, pos - start);
 						return pos + 1;
 					}
 					break;
@@ -1155,13 +1141,13 @@ GOTO_END:
 			case ZERO:
 			case DIGIT:
 				clear(INTEGER);
-				_integer = detail::ttoi64<char_t>(in + start, &end);
+				_i = detail::ttoi64<char_t>(in + start, &end);
 				JSON_PARSE_CHECK(end == in + pos);
 				return pos;
 			case DIGIT_FRAC:
 			case DIGIT_EXP:
 				clear(FLOAT);
-				_float = detail::ttod<char_t>(in + start, &end);
+				_f = detail::ttod<char_t>(in + start, &end);
 				JSON_PARSE_CHECK(end == in + pos);
 				return pos;
 		}
@@ -1199,7 +1185,7 @@ GOTO_END:
 					JSON_PARSE_CHECK(len - pos >= detail::boolean_true_length<char_t>());
 					if(memcmp(in + pos, detail::boolean_true<char_t>(), detail::boolean_true_raw_length<char_t>()) == 0) {
 						clear(BOOLEAN);
-						_boolean = true;
+						_b = true;
 						return pos + detail::boolean_true_length<char_t>();
 					}
 					break;
@@ -1207,7 +1193,7 @@ GOTO_END:
 					JSON_PARSE_CHECK(len - pos >= detail::boolean_false_length<char_t>());
 					if(memcmp(in + pos, detail::boolean_false<char_t>(), detail::boolean_false_raw_length<char_t>()) == 0) {
 						clear(BOOLEAN);
-						_boolean = false;
+						_b = false;
 						return pos + detail::boolean_false_length<char_t>();
 					}
 					break;
@@ -1230,8 +1216,8 @@ GOTO_END:
 #define PUSH_VALUE_TO_STACK(type)										\
 	if(pv.back()->_type == NIL) pv.back()->_type = type; /* Object */	\
 	else { /* Array */													\
-		pv.back()->_array.push_back(JSON_MOVE(ValueT<char_t>(type)));	\
-		pv.push_back(&pv.back()->_array.back());						\
+		pv.back()->_a.push_back(JSON_MOVE(ValueT<char_t>(type)));	\
+		pv.push_back(&pv.back()->_a.back());						\
 	}
 
 	template<class char_t>
@@ -1239,15 +1225,15 @@ GOTO_END:
 	{
 		// Indicate current parse state
 		enum {NONE = 0,
-			/* {*/              OBJECT_LBRACE,
-			/* {" ," */          OBJECT_PAIR_KEY_QUOTE,
-			/* "..." */          OBJECT_PAIR_KEY,
-			/* "...": */         OBJECT_PAIR_COLON,
-			/* "...": "..." */   OBJECT_PAIR_VALUE,
-			/* {..., */          OBJECT_COMMA,
-			/* [ */              ARRAY_LBRACKET,
-			/* [...  [...,... */ ARRAY_ELEM,
-			/* [..., */          ARRAY_COMMA
+			OBJECT_LBRACE,          /* { */
+			OBJECT_PAIR_KEY_QUOTE,  /* {"," */
+			OBJECT_PAIR_KEY,        /* "..." */
+			OBJECT_PAIR_COLON,      /* "...": */
+			OBJECT_PAIR_VALUE,      /* "...":"..." */
+			OBJECT_COMMA,           /* {..., */
+			ARRAY_LBRACKET,         /* [ */
+			ARRAY_ELEM,             /* [...[...,... */
+			ARRAY_COMMA             /* [..., */
 		};
 		unsigned char state = NONE;
 		size_t pos = 0;
@@ -1292,7 +1278,7 @@ GOTO_END:
 									state = OBJECT_PAIR_KEY;
 									JSON_TSTRING(char_t) key;
 									detail::decode(in + u.start, pos - u.start, key);
-									pv.push_back(&pv.back()->_object[JSON_MOVE(key)]);
+									pv.push_back(&pv.back()->_o[JSON_MOVE(key)]);
 									break;
 								}
 							}
@@ -1301,7 +1287,7 @@ GOTO_END:
 						case '\"':
 							state = OBJECT_PAIR_KEY;
 							// Insert a value
-							pv.push_back(&pv.back()->_object[JSON_MOVE(JSON_TSTRING(char_t)(in + u.start, pos - u.start))]);
+							pv.push_back(&pv.back()->_o[JSON_MOVE(JSON_TSTRING(char_t)(in + u.start, pos - u.start))]);
 							u.start = 0;
 							break;
 						default: break;
@@ -1325,11 +1311,12 @@ GOTO_END:
 						case '{': state = OBJECT_LBRACE;  PUSH_VALUE_TO_STACK(OBJECT) break;
 						case '[': state = ARRAY_LBRACKET; PUSH_VALUE_TO_STACK(ARRAY)  break;
 						case ']':
-							if(state == ARRAY_LBRACKET
 #if __XPJSON_SUPPORT_DANGLING_COMMA__
-								|| state == ARRAY_COMMA
+							if(state == ARRAY_LBRACKET)
+#else
+							if(state != OBJECT_PAIR_COLON)
 #endif
-								)  OBJECT_ARRAY_PARSE_END(ARRAY)
+							  OBJECT_ARRAY_PARSE_END(ARRAY)
 							else JSON_PARSE_CHECK(false);
 							break;
 						case_white_space: break;
@@ -1338,8 +1325,8 @@ GOTO_END:
 					if(u.fp) {
 						// If top elem is array, push a elem.
 						if(pv.back()->_type == ARRAY) {
-							pv.back()->_array.push_back(JSON_MOVE(ValueT<char_t>()));
-							pv.push_back(&pv.back()->_array.back());
+							pv.back()->_a.push_back(JSON_MOVE(ValueT<char_t>()));
+							pv.push_back(&pv.back()->_a.back());
 						}
 						// ++pos at last, so minus 1 here.
 						pos += (pv.back()->*u.fp)(in + pos, len - pos) - 1;
@@ -1442,9 +1429,9 @@ GOTO_END:
 		if(lhs.type() != rhs.type()) return false;
 		switch(lhs.type()) {
 			case NIL:     return true;
+			case BOOLEAN: return lhs.b() == rhs.b();
 			case INTEGER: return lhs.i() == rhs.i();
 			case FLOAT:   return fabs(lhs.f() - rhs.f()) < JSON_EPSILON;
-			case BOOLEAN: return lhs.b() == rhs.b();
 			case STRING:  return lhs.s() == rhs.s();
 			case ARRAY:   return lhs.a() == rhs.a();
 			case OBJECT:  return lhs.o() == rhs.o();

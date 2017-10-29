@@ -176,7 +176,7 @@ python
 
 ### Performance-purpose Details
 
-- Can **skip detection** that whether string needs to be converted or escaped.
+- Can **skip detection** that whether string needs to be encoded or escaped.
   - Enable detecttion as default.
     - Use a flag to skip when put string.
     - Auto set during deserialization if skip is possible.
@@ -208,4 +208,4 @@ python
 
 - Please feel free to use xpjson.
 - Looking forward to your suggestions.
-- You can show your project or company here by creating a issue or let we know.
+- If your project is using xpjson, you can show your project or company here by creating a issue or let we know.
