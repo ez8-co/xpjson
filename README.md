@@ -10,6 +10,7 @@
 - **Easy-to-use**: it's STL-based, and designed to be used without extra studies.
 - **Easy-to-assemble**: only a tiny header file needs to be included.
 - **No dependencies**: unless STL and std c libraries.
+- According to **RFC 7159 - The JavaScript Object Notation (JSON) Data Interchange Format**.
 - **Compatiblities**: 
   - **Encoding-friendly**: support popular encodings, like ASCII, UTF8, GBK, GB2312, BIG 5, UTF16, UTF32, UCS-2, UCS-4.
   - **OS-friendly**: portable for popular platforms, like linux and windows.
@@ -18,6 +19,7 @@
 - **100K scenario** validated till now in commercial distributed application service.
 - **Elegant casting** between types, like string to integer, string to float, integer to string, and etc.
 - **NULL** in string value supports.
+- Every JSON value occupies fixed **16 bytes size** under both 32-bit and 64-bit system.
 
 ### Examples
 
@@ -195,14 +197,13 @@ python
 
 ### TODO
 
-- New *readv* method by passing *iovec* param.
 - Small string optimization (SSO) support.
 - Direct memory access (DMA) support for string.
 - Reader & Writer for file.
+- New *readv* method by passing *iovec* param.
+- RFC 6901 - JavaScript Object Notation (JSON) Pointer.
 
 ### WIP
-
-- Structure data size optimization.
 
 ### Misc
 
