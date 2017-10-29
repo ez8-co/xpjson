@@ -179,6 +179,7 @@ python
 - **No useless pretty print** (indent, CRLF, space and other formats).
   - Gaudy feature I think, because performance, size of packet and binaries is most important, not low-frequency debug dump.
   - Use online json-validation web or web browser console to show them in pretty formats instead.
+  - Less extra conditions (about 10% bonous as benchmark said).
 - As **less temporary variables and condition branches** as possible.
 - Auto enable **move operations** if compiler supports to reduce memory copy.
 - Scan **only once** during parse.
@@ -189,13 +190,14 @@ python
 
 ### TODO
 
-- Small string optimization (SSO) support.
-- Direct memory access (DMA) support for string.
-- Reader & Writer for file.
+- Reader & Writer for file / stream.
 - New *readv* method by passing *iovec* param.
 - RFC 6901 - JavaScript Object Notation (JSON) Pointer.
 
 ### WIP
+
+- Small string optimization (SSO) support.
+- Direct memory access (DMA) support for string.
 
 ### Misc
 
