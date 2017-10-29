@@ -510,11 +510,11 @@ namespace JSON
 			Return char_t count(offset) parsed.
 			If error occurred, throws an exception.
 		*/
+		size_t read_nil(const char_t* in, size_t len);
 		size_t read_boolean(const char_t* in, size_t len);
+		size_t read_number(const char_t* in, size_t len);
 		/* NOTE: MUST with quotes.*/
 		size_t read_string(const char_t* in, size_t len);
-		size_t read_number(const char_t* in, size_t len);
-		size_t read_nil(const char_t* in, size_t len);
 
 		/** Indicate current value type. */
 		Type _type : 4;
@@ -607,7 +607,7 @@ namespace JSON
 			case NIL:     return "Null";
 			case BOOLEAN: return "Boolean";
 			case INTEGER: return "Integer";
-			case FLOAT:   return "Float";
+			case FLOAT:   return "Floating";
 			case STRING:  return "String";
 			case OBJECT:  return "Object";
 			case ARRAY:   return "Array";
