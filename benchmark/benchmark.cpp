@@ -72,6 +72,7 @@ void create(JSON::Value& v)
 	media["size"] = 58982400;
 	media["bitrate"] = 262144;
 	media["player"].assign("JAVA", false);
+	media["copyright"];
 
 	JSON::Array& persons = media["persons"].a();
 	persons.resize(2);
@@ -80,7 +81,7 @@ void create(JSON::Value& v)
 
 	JSON::Array& images = v["images"].a();
 	images.resize(2);
-	
+
 	JSON::Object& image1 = images[0].o();
 	image1["uri"].assign("http://javaone.com/keynote_large.jpg", false);
 	image1["title"].assign("Javaone Keynote", false);
