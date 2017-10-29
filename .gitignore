@@ -35,6 +35,7 @@ Makefile
 *.out
 *.app
 *_ut
+*_bench
 *_example*
 
 # ctags files
