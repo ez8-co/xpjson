@@ -93,7 +93,7 @@ TEST(ut_xpjsonW, read)
 
 		// case 2 hybird test
 		{
-			in = L"  \b\f\r\n\t{\"ver\":123,\r\n \"o\"\f\b:\tnull,\"flag\":true,\"data\":[[0,0.1,1.3e2\f]\r\n]\t  }";
+			in = L"  \r\n\t{\"ver\":123,\r\n \"o\":\tnull,\"flag\":true,\"data\":[[0,0.1,1.3e2]\r\n]\t  }";
 			JSON::ReaderW::read(v, in.c_str(), in.length());
 			ASSERT_TRUE(v.type() == JSON::OBJECT);
 
@@ -200,7 +200,7 @@ TEST(ut_xpjsonW, read)
 
 		// case 7 whitespace characters
 		{
-			in = L"\r\n\t {\b\f \"a\" \r:\n \"b\" \n\r\t}";
+			in = L"\r\n\t { \"a\" \r:\n \"b\" \n\r\t}";
 			ASSERT_TRUE(JSON::ReaderW::read(v, in.c_str(), in.length()) == in.length());
 		}
 
@@ -261,11 +261,11 @@ TEST(ut_xpjsonW, read)
 #endif 
 
 		// case 4 whitespace characters/double quotation marks/right brace after left brace
-		in = L"{ \b\f\r\n\taaa";
+		in = L"{ \r\n\taaa";
 		EXPECT_THROW(JSON::ReaderW::read(v, in.c_str(), in.length()), std::logic_error);
 
 		// case 5 colon after key
-		in = L"{\"a\" \b\n\r\f\t a}";
+		in = L"{\"a\" \n\r\t a}";
 		EXPECT_THROW(JSON::ReaderW::read(v, in.c_str(), in.length()), std::logic_error);
 
 		// case 6 uncompleted escaped key
@@ -852,22 +852,6 @@ TEST(ut_xpjsonW, get)
 		ASSERT_TRUE(s == L"test");
 		s = cv.get(L"string_not_exist", s_tmp);
 		ASSERT_TRUE(s == s_tmp);
-
-		JSON::ArrayW a_tmp;
-		a_tmp.push_back(0);
-		JSON::ArrayW a = cv.get(L"array", a_tmp);
-		ASSERT_TRUE(a.size() == 1);
-		ASSERT_TRUE(a[0] == 100);
-		a = cv.get(L"array_not_exist", a_tmp);
-		ASSERT_TRUE(a == a_tmp);
-
-		JSON::ObjectW o_tmp;
-		o_tmp[L"elem"] = 100;
-		JSON::ObjectW o = cv.get(L"object", o_tmp);
-		ASSERT_TRUE(o.size() == 1);
-		ASSERT_TRUE(o[L"elem"] == 0);
-		o = cv.get(L"object_not_exist", o_tmp);
-		ASSERT_TRUE(o == o_tmp);
 	}
 	catch(std::exception &e) {
 		printf("Error : %s.", e.what());
@@ -1004,7 +988,7 @@ TEST(ut_xpjsonW, read_string)
 		ASSERT_TRUE(v.s() == L"abc");
 
 		// case 2 whitespace character before
-		ASSERT_TRUE(v.read_string(L" \r\n\t\f\b\"abc\"", 11) == 11);
+		ASSERT_TRUE(v.read_string(L" \r\n\t\"abc\"", 11) == 11);
 		ASSERT_TRUE(v.s() == L"abc");
 
 		// case 3 escape
@@ -1069,7 +1053,7 @@ TEST(ut_xpjsonW, read_string)
 		EXPECT_THROW(v.read_string(L"\"\\v\"", 4), std::logic_error);
 
 		// case 5 all whitespace
-		EXPECT_THROW(v.read_string(L" \t\b\f\r\n", 6), std::logic_error);
+		EXPECT_THROW(v.read_string(L" \t\r\n", 6), std::logic_error);
 
 		// case 6 capital u
 		EXPECT_THROW(v.read_string(L"\"\\U75ab\"", 8), std::logic_error);
@@ -1129,9 +1113,9 @@ TEST(ut_xpjsonW, read_number)
 		ASSERT_TRUE(v.f() == -3.123e-2);
 
 		// case 5 whitespace characters
-		ASSERT_TRUE(v.read_number(L" \b\f\r\n\t-3.123e-2", 15) == 15);
+		ASSERT_TRUE(v.read_number(L" \r\n\t-3.123e-2", 15) == 15);
 		ASSERT_TRUE(v.f() == -3.123e-2);
-		ASSERT_TRUE(v.read_number(L" \b\f\r\n\t-3.12 3e-2", 16) == 11);
+		ASSERT_TRUE(v.read_number(L" \r\n\t-3.12 3e-2", 16) == 11);
 		ASSERT_TRUE(v.f() == -3.12);
 
 		// 2. exception cases
@@ -1163,7 +1147,7 @@ TEST(ut_xpjsonW, read_number)
 		EXPECT_THROW(v.read_number(L"+13.2", 5), std::logic_error);
 
 		// case 6 all whitespace characters
-		EXPECT_THROW(v.read_number(L" \t\b\f\r\n", 6), std::logic_error);
+		EXPECT_THROW(v.read_number(L" \t\r\n", 6), std::logic_error);
 	}
 	catch(std::exception &e) {
 		printf("Error : %s.", e.what());
@@ -1184,17 +1168,17 @@ TEST(ut_xpjsonW, read_boolean)
 		ASSERT_TRUE(v.b() == false);
 
 		// case 2 whitespace characters
-		ASSERT_TRUE(v.read_boolean(L" \b\f\r\n\ttrue", 10) == 10);
+		ASSERT_TRUE(v.read_boolean(L" \r\n\ttrue", 10) == 10);
 		ASSERT_TRUE(v.b() == true);
-		ASSERT_TRUE(v.read_boolean(L" \b\f\r\n\tfalse", 11) == 11);
+		ASSERT_TRUE(v.read_boolean(L" \r\n\tfalse", 11) == 11);
 		ASSERT_TRUE(v.b() == false);
 
 		// 2. exception cases
 		// case 1 insufficient data
 		EXPECT_THROW(v.read_boolean(L"tru", 3), std::logic_error);
 		EXPECT_THROW(v.read_boolean(L"fals", 4), std::logic_error);
-		EXPECT_THROW(v.read_boolean(L" \b\f\r\n\ttru", 9), std::logic_error);
-		EXPECT_THROW(v.read_boolean(L" \b\f\r\n\tfals", 10), std::logic_error);
+		EXPECT_THROW(v.read_boolean(L" \r\n\ttru", 9), std::logic_error);
+		EXPECT_THROW(v.read_boolean(L" \r\n\tfals", 10), std::logic_error);
 
 		// case 2 typos
 		EXPECT_THROW(v.read_boolean(L"trua", 4), std::logic_error);
@@ -1205,7 +1189,7 @@ TEST(ut_xpjsonW, read_boolean)
 		EXPECT_THROW(v.read_boolean(L"falsE", 5), std::logic_error);
 
 		// case 4 all whitespace characters
-		EXPECT_THROW(v.read_boolean(L" \t\b\f\r\n", 6), std::logic_error);
+		EXPECT_THROW(v.read_boolean(L" \t\r\n", 6), std::logic_error);
 	}
 	catch(std::exception &e) {
 		printf("Error : %s.", e.what());
@@ -1224,13 +1208,13 @@ TEST(ut_xpjsonW, read_nil)
 		ASSERT_TRUE(v.type() == JSON::NIL);
 
 		// case 2 whitespace characters
-		ASSERT_TRUE(v.read_nil(L" \b\f\r\n\tnull", 10) == 10);
+		ASSERT_TRUE(v.read_nil(L" \r\n\tnull", 10) == 10);
 		ASSERT_TRUE(v.type() == JSON::NIL);
 
 		// 2. exception cases
 		// case 1 insufficient data
 		EXPECT_THROW(v.read_nil(L"nul", 3), std::logic_error);
-		EXPECT_THROW(v.read_nil(L" \b\f\r\n\tnul", 9), std::logic_error);
+		EXPECT_THROW(v.read_nil(L" \r\n\tnul", 9), std::logic_error);
 
 		// case 2 typos
 		EXPECT_THROW(v.read_nil(L"nule", 4), std::logic_error);
@@ -1241,7 +1225,7 @@ TEST(ut_xpjsonW, read_nil)
 		EXPECT_THROW(v.read_nil(L"NULL", 4), std::logic_error);
 
 		// case 4 all whitespace characters
-		EXPECT_THROW(v.read_nil(L" \t\b\f\r\n", 6), std::logic_error);
+		EXPECT_THROW(v.read_nil(L" \t\r\n", 6), std::logic_error);
 	}
 	catch(std::exception &e) {
 		printf("Error : %s.", e.what());

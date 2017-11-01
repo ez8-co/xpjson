@@ -1073,7 +1073,7 @@ namespace JSON
 		}
 	}
 
-#define case_white_space	case ' ':case '\b':case '\f':case '\n':case '\r':case '\t'
+#define case_white_space	case ' ':case '\n':case '\r':case '\t'
 #define case_number_1_9		case '1':case '2':case '3':case '4':case '5':case '6':case '7':case '8':case '9'
 #define case_number_0_9		case '0':case_number_1_9
 #define case_number_ending	case_white_space: case ',':case ']':case '}'

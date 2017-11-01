@@ -6,6 +6,7 @@ PROJECT(xpjson_bench)
 IF (CMAKE_SYSTEM_NAME MATCHES "Linux")
     LINK_LIBRARIES(gtest pthread)
 
+    SET(CMAKE_BUILD_TYPE "Release")
     SET(CMAKE_CXX_FLAGS_DEBUG "$ENV{CXXFLAGS} -O0 -Wall -g2 -ggdb -std=c++0x")
     SET(CMAKE_CXX_FLAGS_RELEASE "$ENV{CXXFLAGS} -O3 -Wall -std=c++0x")
 ELSEIF (CMAKE_SYSTEM_NAME MATCHES "Windows")
@@ -24,5 +25,4 @@ ELSEIF (CMAKE_SYSTEM_NAME MATCHES "Windows")
     ENDFOREACH()
 ENDIF (CMAKE_SYSTEM_NAME MATCHES "Linux")
 
-SET(CMAKE_BUILD_TYPE "Release")
 ADD_EXECUTABLE(xpjson_bench "benchmark.cpp")
