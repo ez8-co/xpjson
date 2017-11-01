@@ -1065,10 +1065,8 @@ namespace JSON
 				out += (_b ? detail::boolean_true<char_t>() : detail::boolean_false<char_t>());
 				break;
 			case STRING:
-				out += '\"';
 				if(_e) detail::encode(_s->c_str(), _s->length(), out);
-				else out += *_s;
-				out += '\"';
+				else out.append(_s->c_str(), _s->length());
 				break;
 		}
 	}
