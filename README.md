@@ -192,7 +192,6 @@ python
 
 - Reader & Writer for file / stream.
 - New *readv* method by passing *iovec* param.
-- RFC 6901 - JavaScript Object Notation (JSON) Pointer.
 - Optimization of using CPU intrinsics set.
 
 ### WIP
