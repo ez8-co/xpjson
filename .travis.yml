@@ -24,3 +24,7 @@ script: "cd ut && ctest && valgrind ./xpjson_ut"
 branches:
   only:
     - master
+addons:
+  apt:
+    packages:
+    - cmake
