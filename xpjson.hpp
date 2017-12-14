@@ -91,11 +91,11 @@ using namespace std;
 #	define JSON_TSTRING(type)			basic_string<type>
 #endif
 
-#define JSON_ASSERT_CHECK(expression, exception_type, what)	\
+#define JSON_ASSERT_CHECK(expression, exception_type, what)\
 	if(!(expression)) {throw exception_type(what);}
-#define JSON_ASSERT_CHECK1(expression, fmt, arg1)		\
+#define JSON_ASSERT_CHECK1(expression, fmt, arg1)\
 	if(!(expression)) {char what[0x100] = {0}; sprintf(what, fmt"(line:%d)", arg1, __LINE__); throw std::logic_error(what);}
-#define JSON_ASSERT_CHECK2(expression, fmt, arg1, arg2)	\
+#define JSON_ASSERT_CHECK2(expression, fmt, arg1, arg2)\
 	if(!(expression)) {char what[0x100] = {0}; sprintf(what, fmt"(line:%d)", arg1, arg2, __LINE__); throw std::logic_error(what);}
 #define JSON_CHECK_TYPE(type, except) JSON_ASSERT_CHECK2(type == except, "Type error: except(%s), actual(%s).", get_type_name(except), get_type_name(type))
 #define JSON_PARSE_CHECK(expression)  JSON_ASSERT_CHECK2(expression, "Parse error: in=%.50s pos=%zd.", detail::get_cstr(in, len).c_str (), pos)
@@ -341,7 +341,7 @@ namespace JSON
 			return _b;
 		}
 		/** Cast operator for integer */
-#define JSON_INTEGER_OPERATOR(type)		\
+#define JSON_INTEGER_OPERATOR(type)\
 	inline operator type(void) const {JSON_CHECK_TYPE(_type, INTEGER);return _i;}
 		JSON_INTEGER_OPERATOR(unsigned char)
 		JSON_INTEGER_OPERATOR(signed char)
@@ -360,7 +360,7 @@ namespace JSON
 		JSON_INTEGER_OPERATOR(int64_t)
 #undef JSON_INTEGER_OPERATOR
 		/** Cast operator for float */
-#define JSON_FLOAT_OPERATOR(type)		\
+#define JSON_FLOAT_OPERATOR(type)\
 	inline operator type(void) const {JSON_CHECK_TYPE(_type, FLOAT);return _f;}
 		JSON_FLOAT_OPERATOR(float)
 		JSON_FLOAT_OPERATOR(double)
@@ -724,7 +724,7 @@ namespace JSON
 				out.resize(out.length() - bufSize + fmter(&out[out.length() - bufSize], bufSize, fmt, v));
 			}
 
-#define JSON_TO_STRING(type, char_t, fmter, fmt) \
+#define JSON_TO_STRING(type, char_t, fmter, fmt)\
 	template<> inline void to_string<type, char_t>(const type& v, JSON_TSTRING(char_t)& out) {internal_to_string<type, char_t>(v, out, fmter, fmt);}
 
 			template<class T, class char_t>
@@ -792,11 +792,11 @@ namespace JSON
 						case '\r': out += "\\r";  break;
 						case '\t': out += "\\t";  break;
 						default:
-                            if(*in >= 0 && *in < 20)
-                                encode_unicode<sizeof(char), char>(*in, out);
-                            else
-                                out += *in;
-                            break;
+							if(*in >= 0 && *in < 20)
+								encode_unicode<sizeof(char), char>(*in, out);
+							else
+								out += *in;
+							break;
 					}
 					++in;
 				}
@@ -805,22 +805,22 @@ namespace JSON
 			void encode(const wchar_t* in, size_t len, JSON_TSTRING(wchar_t)& out)
 			{
 				while(len--) {
-                    switch(*in) {
-                        case '\"': out += L"\\\""; break;
-                        case '\\': out += L"\\\\"; break;
-                        case '/':  out += L"\\/";  break;
-                        case '\b': out += L"\\b";  break;
-                        case '\f': out += L"\\f";  break;
-                        case '\n': out += L"\\n";  break;
-                        case '\r': out += L"\\r";  break;
-                        case '\t': out += L"\\t";  break;
-                        default:
-                            if(*in > 0x7F || (*in >= 0 && *in < 20))
-                                encode_unicode<sizeof(wchar_t), wchar_t>(*in, out);
-                            else
-                                out += *in;
-                            break;
-                    }
+					switch(*in) {
+						case '\"': out += L"\\\""; break;
+						case '\\': out += L"\\\\"; break;
+						case '/':  out += L"\\/";  break;
+						case '\b': out += L"\\b";  break;
+						case '\f': out += L"\\f";  break;
+						case '\n': out += L"\\n";  break;
+						case '\r': out += L"\\r";  break;
+						case '\t': out += L"\\t";  break;
+						default:
+							if(*in > 0x7F || (*in >= 0 && *in < 20))
+								encode_unicode<sizeof(wchar_t), wchar_t>(*in, out);
+							else
+								out += *in;
+							break;
+					}
 					++in;
 				}
 			}
@@ -996,8 +996,8 @@ namespace JSON
 					case INTEGER: return T(v.i());
 					case FLOAT:   return T(v.f());
 					case STRING:
-						if(v.s() == boolean_true<char_t>()) return T(1);
-						else if(v.s() == boolean_false<char_t>()) return T(0);
+						if(v.s() == boolean<true, char_t>()) return T(1);
+						else if(v.s() == boolean<false, char_t>()) return T(0);
 						else {
 							char_t* end = 0;
 							double d = ttod(v.s().c_str(), &end);
@@ -1016,7 +1016,7 @@ namespace JSON
 			{
 				switch(v.type()) {
 					case NIL:     break;
-					case BOOLEAN: return T(v.b() ? detail::boolean_true<char_t>() : detail::boolean_false<char_t>());
+					case BOOLEAN: return T(v.b() ? detail::boolean<true, char_t>() : detail::boolean<false, char_t>());
 					case INTEGER: return to_string<int64_t, char_t>(v.i());
 					case FLOAT:   return to_string<double, char_t>(v.f());
 					case STRING:  return T(v.s());
@@ -1054,7 +1054,7 @@ namespace JSON
 			case OBJECT:  WriterT<char_t>::write(*_o, out);   break;
 			case ARRAY:   WriterT<char_t>::write(*_a, out);   break;
 			case BOOLEAN:
-				out += (_b ? detail::boolean_true<char_t>() : detail::boolean_false<char_t>());
+				out += (_b ? detail::boolean<true, char_t>() : detail::boolean<false, char_t>());
 				break;
 			case STRING:
 				if(_e) detail::encode(_s->c_str(), _s->length(), out);
@@ -1241,19 +1241,19 @@ GOTO_END:
 		JSON_PARSE_CHECK(false);
 	}
 
-#define OBJECT_ARRAY_PARSE_END(type) {									\
-		JSON_PARSE_CHECK(pv.back()->_type == type);						\
-		pv.pop_back();													\
+#define OBJECT_ARRAY_PARSE_END(type) {\
+		JSON_PARSE_CHECK(pv.back()->_type == type);\
+		pv.pop_back();\
 		if(pv.empty()) return pos + 1;/* Object/Array parse finished. */\
-		if(pv.back()->_type == OBJECT) state = OBJECT_PAIR_VALUE;		\
-		else if(pv.back()->_type == ARRAY) state = ARRAY_ELEM;			\
+		if(pv.back()->_type == OBJECT) state = OBJECT_PAIR_VALUE;\
+		else if(pv.back()->_type == ARRAY) state = ARRAY_ELEM;\
 	}
 
-#define PUSH_VALUE_TO_STACK(type)										\
-	if(pv.back()->_type == NIL) pv.back()->clear(type);					\
-	else {																\
-		pv.back()->_a->push_back(JSON_MOVE(ValueT<char_t>(type)));		\
-		pv.push_back(&pv.back()->_a->back());							\
+#define PUSH_VALUE_TO_STACK(type)\
+	if(pv.back()->_type == NIL) pv.back()->clear(type);\
+	else {\
+		pv.back()->_a->push_back(JSON_MOVE(ValueT<char_t>(type)));\
+		pv.push_back(&pv.back()->_a->back());\
 	}
 
 	template<class char_t>
@@ -1421,7 +1421,7 @@ GOTO_END:
 			out += ',';
 			++it;
 		}
-		if(out[out.length() - 1] != '{') out[out.length() - 1] = '}'; else out += '}';
+		if(out.back() != '{') out.back() = '}'; else out += '}';
 	}
 
 	template<class char_t>
@@ -1433,7 +1433,7 @@ GOTO_END:
 			a[i++].write(out);
 			out += ',';
 		}
-		if(out[out.length() - 1] != '[') out[out.length() - 1] = ']'; else out += ']';
+		if(out.back() != '[') out.back() = ']'; else out += ']';
 	}
 
 	template<class char_t>
