@@ -1,0 +1,7 @@
+language: cpp
+git:
+  submodules: false
+install:
+    - cd ut && cmake . && make -j3
+test:
+    - cd ut && ./xpjson_ut
