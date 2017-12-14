@@ -2,6 +2,8 @@
 ### What is xpjson?
 
 [![license](https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat)](https://github.com/ez8-co/xpjson/blob/master/LICENSE)
+[![Build Status](https://travis-ci.org/ez8-co/xpjson.svg?branch=master)](https://travis-ci.org/ez8-co/xpjson)
+[![codecov](https://codecov.io/gh/ez8-co/xpjson/branch/master/graph/badge.svg)](https://codecov.io/gh/ez8-co/xpjson)
 
 - A minimal Xross-Platform/Xtreme-Performance JSON serialization & deserialization library in C++.
 
