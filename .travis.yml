@@ -14,7 +14,6 @@ before_install:
  - sudo cp -a include/gtest /usr/include
  - sudo cp -a libgtest_main.so libgtest.so /usr/lib/
  - which valgrind
- - cd "${TRAVIS_BUILD_DIR}"
 before_script:
  - cd ut
  - cmake .
