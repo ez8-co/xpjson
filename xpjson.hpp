@@ -719,12 +719,9 @@ namespace JSON
 			inline void internal_to_string(const T& v, JSON_TSTRING(char_t)& out, int(*fmter)(char_t*,size_t,const char_t*,...), const char_t* fmt)
 			{
 				// double 24 bytes, int64_t 20 bytes
-				static const size_t bufSize = 25;
-				const size_t len = out.length();
-				out.resize(len + bufSize);
-				int ret = fmter(&out[0] + len, bufSize, fmt, v);
-				if(ret == bufSize || ret < 0) JSON_ASSERT_CHECK(false, std::runtime_error, "Format error.");
-				out.resize(len + ret);
+				const size_t bufSize = 25;
+				out.resize(out.length() + bufSize);
+				out.resize(out.length() - bufSize + fmter(&out[out.length() - bufSize], bufSize, fmt, v));
 			}
 
 #define JSON_TO_STRING(type, char_t, fmter, fmt) \
@@ -794,10 +791,12 @@ namespace JSON
 						case '\n': out += "\\n";  break;
 						case '\r': out += "\\r";  break;
 						case '\t': out += "\\t";  break;
-						case 0:case 1:case 2:case 3:case 4:case 5:case 6:case 7:
-						case 11:case 14:case 15:case 16:case 17:case 18:case 19:
-							encode_unicode<sizeof(char), char>(*in, out); break;
-						default:   out += *in; break;
+						default:
+                            if(*in >= 0 && *in < 20)
+                                encode_unicode<sizeof(char), char>(*in, out);
+                            else
+                                out += *in;
+                            break;
 					}
 					++in;
 				}
@@ -806,23 +805,22 @@ namespace JSON
 			void encode(const wchar_t* in, size_t len, JSON_TSTRING(wchar_t)& out)
 			{
 				while(len--) {
-					if(*in > 0x7F) encode_unicode<sizeof(wchar_t), wchar_t>(*in, out);
-					else {
-						switch(*in) {
-							case '\"': out += L"\\\""; break;
-							case '\\': out += L"\\\\"; break;
-							case '/':  out += L"\\/";  break;
-							case '\b': out += L"\\b";  break;
-							case '\f': out += L"\\f";  break;
-							case '\n': out += L"\\n";  break;
-							case '\r': out += L"\\r";  break;
-							case '\t': out += L"\\t";  break;
-							case 0:case 1:case 2:case 3:case 4:case 5:case 6:case 7:
-							case 11:case 14:case 15:case 16:case 17:case 18:case 19:
-								encode_unicode<sizeof(wchar_t), wchar_t>(*in, out); break;
-							default:   out += *in;     break;
-						}
-					}
+                    switch(*in) {
+                        case '\"': out += L"\\\""; break;
+                        case '\\': out += L"\\\\"; break;
+                        case '/':  out += L"\\/";  break;
+                        case '\b': out += L"\\b";  break;
+                        case '\f': out += L"\\f";  break;
+                        case '\n': out += L"\\n";  break;
+                        case '\r': out += L"\\r";  break;
+                        case '\t': out += L"\\t";  break;
+                        default:
+                            if(*in > 0x7F || (*in >= 0 && *in < 20))
+                                encode_unicode<sizeof(wchar_t), wchar_t>(*in, out);
+                            else
+                                out += *in;
+                            break;
+                    }
 					++in;
 				}
 			}
@@ -931,26 +929,20 @@ namespace JSON
 				}
 			}
 
-			template<class char_t> const char_t* boolean_true(void);
-			template<> inline const char* boolean_true<char>(void) {return "true";}
-			template<> inline const wchar_t* boolean_true<wchar_t>(void) {return L"true";}
+			template<bool b, class char_t> const char_t* boolean(void);
+			template<> inline const char* boolean<true, char>(void) {return "true";}
+			template<> inline const wchar_t* boolean<true, wchar_t>(void) {return L"true";}
+			template<> inline const char* boolean<false, char>(void) {return "false";}
+			template<> inline const wchar_t* boolean<false, wchar_t>(void) {return L"false";}
 
-			template<class char_t> inline size_t boolean_true_length(void) {return 4;}
-			template<class char_t> inline size_t boolean_true_raw_length(void) {return 4 * sizeof(char_t);}
-
-			template<class char_t> const char_t* boolean_false(void);
-			template<> inline const char* boolean_false<char>(void) {return "false";}
-			template<> inline const wchar_t* boolean_false<wchar_t>(void) {return L"false";}
-
-			template<class char_t> inline size_t boolean_false_length(void) {return 5;}
-			template<class char_t> inline size_t boolean_false_raw_length(void) {return 5 * sizeof(char_t);}
+			inline size_t boolean_true_length(void) {return 4;}
+			inline size_t boolean_false_length(void) {return 5;}
 
 			template<class char_t> const char_t* nil_null(void);
 			template<> inline const char* nil_null<char>(void) {return "null";}
 			template<> inline const wchar_t* nil_null<wchar_t>(void) {return L"null";}
 
-			template<class char_t> inline size_t nil_null_length(void) {return 4;}
-			template<class char_t> inline size_t nil_null_raw_length(void) {return 4 * sizeof(char_t);}
+			inline size_t nil_null_length(void) {return 4;}
 
 			template<class char_t> int64_t ttoi64(const char_t* in, char_t** end);
 			template<> int64_t ttoi64<char>(const char* in, char** end) {return strtoll(in, end, 10);}
@@ -1205,10 +1197,10 @@ GOTO_END:
 		while(pos < len) {
 			switch(in[pos]) {
 				case 'n':
-					JSON_PARSE_CHECK(len - pos >= detail::nil_null_length<char_t>());
-					if(memcmp(in + pos, detail::nil_null<char_t>(), detail::nil_null_raw_length<char_t>()) == 0) {
+					JSON_PARSE_CHECK(len - pos >= detail::nil_null_length());
+					if(memcmp(in + pos, detail::nil_null<char_t>(), detail::nil_null_length() * sizeof(char_t)) == 0) {
 						clear();
-						return pos + detail::nil_null_length<char_t>();
+						return pos + detail::nil_null_length();
 					}
 					break;
 				case_white_space: break;
@@ -1226,19 +1218,19 @@ GOTO_END:
 		while(pos < len) {
 			switch(in[pos]) {
 				case 't':
-					JSON_PARSE_CHECK(len - pos >= detail::boolean_true_length<char_t>());
-					if(memcmp(in + pos, detail::boolean_true<char_t>(), detail::boolean_true_raw_length<char_t>()) == 0) {
+					JSON_PARSE_CHECK(len - pos >= detail::boolean_true_length());
+					if(memcmp(in + pos, detail::boolean<true, char_t>(), detail::boolean_true_length() * sizeof(char_t)) == 0) {
 						clear(BOOLEAN);
 						_b = true;
-						return pos + detail::boolean_true_length<char_t>();
+						return pos + detail::boolean_true_length();
 					}
 					break;
 				case 'f':
-					JSON_PARSE_CHECK(len - pos >= detail::boolean_false_length<char_t>());
-					if(memcmp(in + pos, detail::boolean_false<char_t>(), detail::boolean_false_raw_length<char_t>()) == 0) {
+					JSON_PARSE_CHECK(len - pos >= detail::boolean_false_length());
+					if(memcmp(in + pos, detail::boolean<false, char_t>(), detail::boolean_false_length() * sizeof(char_t)) == 0) {
 						clear(BOOLEAN);
 						_b = false;
-						return pos + detail::boolean_false_length<char_t>();
+						return pos + detail::boolean_false_length();
 					}
 					break;
 				case_white_space: break;
