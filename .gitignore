@@ -40,3 +40,10 @@ Makefile
 
 # ctags files
 .tags*
+
+# coverage files
+coverage
+*_coverage
+
+# Tesing files
+Testing
