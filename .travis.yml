@@ -14,12 +14,14 @@ before_install:
  - sudo cp -a include/gtest /usr/include
  - sudo cp -a libgtest_main.so libgtest.so /usr/lib/
  - which valgrind
+ - sudo pip install codecov
  - cd "${TRAVIS_BUILD_DIR}"
  - ls -l
 script: 
  - cd ut
- - cmake .
+ - cmake -DCMAKE_BUILD_TYPE=Coverage -DBUILD_TESTS=ON .
  - make
+ - make xpjson_coverage
  - ls -l
  - ctest
  - valgrind ./xpjson_ut
@@ -30,3 +32,5 @@ addons:
   apt:
     packages:
     - cmake
+after_success:
+    - codecov -t 903cbedc-90af-4d3f-9af8-5d970c0821ab -X gcov
