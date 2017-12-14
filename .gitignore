@@ -42,8 +42,7 @@ Makefile
 .tags*
 
 # coverage files
-coverage
-*_coverage
+*coverage*
 
 # Tesing files
 Testing
