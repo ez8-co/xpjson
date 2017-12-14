@@ -16,13 +16,13 @@ before_install:
  - which valgrind
  - cd "${TRAVIS_BUILD_DIR}"
  - ls -l
-before_script:
- - ls -l
+script: 
  - cd ut
  - cmake .
  - make
  - ls -l
-script: "cd ut && ctest && valgrind ./xpjson_ut"
+ - ctest
+ - valgrind ./xpjson_ut
 branches:
   only:
     - master
