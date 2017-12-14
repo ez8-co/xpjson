@@ -43,19 +43,14 @@ IF (CMAKE_SYSTEM_NAME MATCHES "Linux")
 ENDIF (CMAKE_SYSTEM_NAME MATCHES "Linux")
 
 # Options. Turn on with 'cmake -Dmyvarname=ON'.
-option(BUILD_TESTS "Build all tests." OFF) # Makes boolean 'test' available.
+OPTION(BUILD_TESTS "Build all tests." OFF) # Makes boolean 'test' available.
 
 IF(BUILD_TESTS)
     ENABLE_TESTING()
-    ADD_TEST(UT xpjson_ut)
-    ADD_TEST(DANGLING_COMMA xpjson_dangling_comma_ut)
-    ADD_TEST(C++11 xpjson_cxx0x_ut)
+    ADD_TEST(ut xpjson_ut)
+    ADD_TEST(dangling_comma xpjson_dangling_comma_ut)
+    ADD_TEST(c++11 xpjson_cxx0x_ut)
 
-    IF (CMAKE_BUILD_TYPE STREQUAL "Coverage")
-        INCLUDE(CodeCoverage)
-        SETUP_TARGET_FOR_COVERAGE(xpjson_coverage xpjson_ut coverage)
-
-        SET(CMAKE_CXX_FLAGS "-g -O0 -fprofile-arcs -ftest-coverage")
-        SET(CMAKE_C_FLAGS "-g -O0 -fprofile-arcs -ftest-coverage")
-    ENDIF() #CMAKE_BUILD_TYPE STREQUAL "Coverage"
+    INCLUDE(CodeCoverage)
+    SETUP_TARGET_FOR_COVERAGE(xpjson_coverage xpjson_ut coverage)
 ENDIF()
