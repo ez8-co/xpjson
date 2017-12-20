@@ -98,7 +98,7 @@ using namespace std;
 #define JSON_ASSERT_CHECK2(expression, fmt, arg1, arg2)\
 	if(!(expression)) {char what[0x100] = {0}; sprintf(what, fmt"(line:%d)", arg1, arg2, __LINE__); throw std::logic_error(what);}
 #define JSON_CHECK_TYPE(type, except) JSON_ASSERT_CHECK2(type == except, "Type error: except(%s), actual(%s).", get_type_name(except), get_type_name(type))
-#define JSON_PARSE_CHECK(expression)  JSON_ASSERT_CHECK2(expression, "Parse error: in=%.50s pos=%zd.", detail::get_cstr(in, len).c_str (), pos)
+#define JSON_PARSE_CHECK(expression)  JSON_ASSERT_CHECK2(expression, "Parse error: in=%.50s pos=%zu.", detail::get_cstr(in, len).c_str (), pos)
 #define JSON_DECODE_CHECK(expression) JSON_ASSERT_CHECK1(expression, "Decode error: in=%.50s.", detail::get_cstr(in, len).c_str ())
 
 #ifdef __XPJSON_SUPPORT_MOVE__
@@ -490,6 +490,9 @@ namespace JSON
 			return (*_a)[pos];
 		}
 
+		/** Support get value with elegant cast. */
+		template<class T> T get(const T& default_value) const;
+
 		/** Support get value of key with elegant cast, return default_value if key not exist. */
 		template<class T> T get(const tstring& key, const T& default_value) const;
 
@@ -719,9 +722,9 @@ namespace JSON
 			inline void internal_to_string(const T& v, JSON_TSTRING(char_t)& out, int(*fmter)(char_t*,size_t,const char_t*,...), const char_t* fmt)
 			{
 				// double 24 bytes, int64_t 20 bytes
-				const size_t bufSize = 25;
-				out.resize(out.length() + bufSize);
-				out.resize(out.length() - bufSize + fmter(&out[out.length() - bufSize], bufSize, fmt, v));
+				char_t buf[25];
+				fmter(buf, 25, fmt, v);
+				out += buf;
 			}
 
 #define JSON_TO_STRING(type, char_t, fmter, fmt)\
@@ -1025,6 +1028,12 @@ namespace JSON
 				return T(value);
 			}
 		}
+	}
+
+	template<class char_t> template<class T>
+	T JSON::ValueT<char_t>::get(const T& default_value) const
+	{
+		return JSON_MOVE((detail::internal_type_casting <char_t, T>(*this, default_value)));
 	}
 
 	template<class char_t> template<class T>
@@ -1421,7 +1430,7 @@ GOTO_END:
 			out += ',';
 			++it;
 		}
-		if(out.back() != '{') out.back() = '}'; else out += '}';
+		if(out[out.length() - 1] != '{') out[out.length() - 1] = '}'; else out += '}';
 	}
 
 	template<class char_t>
@@ -1433,7 +1442,7 @@ GOTO_END:
 			a[i++].write(out);
 			out += ',';
 		}
-		if(out.back() != '[') out.back() = ']'; else out += ']';
+		if(out[out.length() - 1] != '[') out[out.length() - 1] = ']'; else out += ']';
 	}
 
 	template<class char_t>

@@ -14,6 +14,7 @@ class TimeCost
 public:
 	TimeCost()
 #ifdef _WIN32
+		: _milliseconds(0)
 	{
 		QueryPerformanceFrequency(&_freq);
 	}
