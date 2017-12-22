@@ -1,23 +1,10 @@
 /*
-Copyright (c) 2010-2017 <http://ez8.co> <orca.zhang@yahoo.com>
+  xpjson —— A minimal Xross-Platform/eXtreme-Performance JSON read & write library in C++.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+  Copyright (c) 2010-2017 <http://ez8.co> <orca.zhang@yahoo.com>
+  This library is released under the MIT Licence.
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+  Please see LICENSE file or visit https://github.com/ez8-co/xpjson for details.
  */
 #ifndef __XPJSON_HPP__
 #define __XPJSON_HPP__
@@ -50,7 +37,7 @@ using namespace std;
 #	endif
 #elif defined(__GNUC__)
 #	if defined(_GXX_EXPERIMENTAL_CXX0X__) || __cplusplus >= 201103L
-#		if (__GNUC__ * 1000 + __GNU_MINOR__) >= 4006
+#		if (__GNUC__ * 1000 + __GNUC_MINOR__) >= 4006
 #			define __XPJSON_SUPPORT_MOVE__
 #		endif
 #	endif
@@ -214,7 +201,7 @@ namespace JSON
 		typedef JSON_TSTRING(char_t) tstring;
 
 		/** Default constructor(type = NIL). */
-		ValueT(void) : _type(NIL) {}
+		ValueT() : _type(NIL) {}
 		/** Constructor with type. */
 		ValueT(Type type);
 		/** Copy constructor. */
@@ -268,7 +255,7 @@ namespace JSON
 		ValueT(ArrayT<char_t>&& a) : _type(ARRAY), _a(0) {_a = new ArrayT<char_t>(JSON_MOVE(a));}
 #endif
 
-		~ValueT(void) {clear();}
+		~ValueT() {clear();}
 
 		/** Assign function. */
 		void assign(const ValueT<char_t>& v);
@@ -332,17 +319,17 @@ namespace JSON
 #undef JSON_ASSIGNMENT
 
 		/** Type query. */
-		inline Type type(void) const {return _type;}
+		inline Type type() const {return _type;}
 
 		/** Cast operator for bool */
-		inline operator bool(void) const
+		inline operator bool() const
 		{
 			JSON_CHECK_TYPE(_type, BOOLEAN);
 			return _b;
 		}
 		/** Cast operator for integer */
 #define JSON_INTEGER_OPERATOR(type)\
-	inline operator type(void) const {JSON_CHECK_TYPE(_type, INTEGER);return _i;}
+	inline operator type() const {JSON_CHECK_TYPE(_type, INTEGER);return _i;}
 		JSON_INTEGER_OPERATOR(unsigned char)
 		JSON_INTEGER_OPERATOR(signed char)
 #ifdef _NATIVE_WCHAR_T_DEFINED
@@ -361,71 +348,71 @@ namespace JSON
 #undef JSON_INTEGER_OPERATOR
 		/** Cast operator for float */
 #define JSON_FLOAT_OPERATOR(type)\
-	inline operator type(void) const {JSON_CHECK_TYPE(_type, FLOAT);return _f;}
+	inline operator type() const {JSON_CHECK_TYPE(_type, FLOAT);return _f;}
 		JSON_FLOAT_OPERATOR(float)
 		JSON_FLOAT_OPERATOR(double)
 		JSON_FLOAT_OPERATOR(long double)
 #undef JSON_FLOAT_OPERATOR
 		/** Cast operator for STD string */
-		inline operator tstring(void) const
+		inline operator tstring() const
 		{
 			JSON_CHECK_TYPE(_type, STRING);
 			return *_s;
 		}
 		/** Cast operator for Object */
-		inline operator ObjectT<char_t>(void) const
+		inline operator ObjectT<char_t>() const
 		{
 			JSON_CHECK_TYPE(_type, OBJECT);
 			return *_o;
 		}
 		/** Cast operator for Array */
-		inline operator ArrayT<char_t>(void) const
+		inline operator ArrayT<char_t>() const
 		{
 			JSON_CHECK_TYPE(_type, ARRAY);
 			return *_a;
 		}
 
 		/** Fetch boolean reference */
-		inline bool& b(void)
+		inline bool& b()
 		{
 			if(_type == NIL) {_type = BOOLEAN; _b = false;}
 			JSON_CHECK_TYPE(_type, BOOLEAN);
 			return _b;
 		}
 		/** Fetch boolean value */
-		inline bool b(void) const
+		inline bool b() const
 		{
 			JSON_CHECK_TYPE(_type, BOOLEAN);
 			return _b;
 		}
 		/** Fetch integer reference*/
-		inline int64_t& i(void)
+		inline int64_t& i()
 		{
 			if(_type == NIL) {_type = INTEGER; _i = 0;}
 			JSON_CHECK_TYPE(_type, INTEGER);
 			return _i;
 		}
 		/** Fetch integer value*/
-		inline int64_t i(void) const
+		inline int64_t i() const
 		{
 			JSON_CHECK_TYPE(_type, INTEGER);
 			return _i;
 		}
 		/** Fetch float reference */
-		inline double& f(void)
+		inline double& f()
 		{
 			if(_type == NIL) {_type = FLOAT; _f = 0;}
 			JSON_CHECK_TYPE(_type, FLOAT);
 			return _f;
 		}
 		/** Fetch float value */
-		inline long double f(void) const
+		inline long double f() const
 		{
 			JSON_CHECK_TYPE(_type, FLOAT);
 			return _f;
 		}
 		/** Fetch string reference */
-		inline tstring& s(void)
+		inline tstring& s()
 		{
 			if(_type == NIL) {_type = STRING; _s = new tstring;}
 			_e = true; // the string may be modified by caller
@@ -433,33 +420,33 @@ namespace JSON
 			return *_s;
 		}
 		/** Fetch string const-reference */
-		inline const tstring& s(void) const
+		inline const tstring& s() const
 		{
 			JSON_CHECK_TYPE(_type, STRING);
 			return *_s;
 		}
 		/** Fetch object reference */
-		inline ObjectT<char_t>& o(void)
+		inline ObjectT<char_t>& o()
 		{
 			if(_type == NIL) {_type = OBJECT; _o = new ObjectT<char_t>;}
 			JSON_CHECK_TYPE(_type, OBJECT);
 			return *_o;
 		}
 		/** Fetch object const-reference */
-		inline const ObjectT<char_t>& o(void) const
+		inline const ObjectT<char_t>& o() const
 		{
 			JSON_CHECK_TYPE(_type, OBJECT);
 			return *_o;
 		}
 		/** Fetch array reference */
-		inline ArrayT<char_t>& a(void)
+		inline ArrayT<char_t>& a()
 		{
 			if(_type == NIL) {_type = ARRAY; _a = new ArrayT<char_t>;}
 			JSON_CHECK_TYPE(_type, ARRAY);
 			return *_a;
 		}
 		/** Fetch array const-reference */
-		inline const ArrayT<char_t>& a(void) const
+		inline const ArrayT<char_t>& a() const
 		{
 			JSON_CHECK_TYPE(_type, ARRAY);
 			return *_a;
@@ -932,20 +919,20 @@ namespace JSON
 				}
 			}
 
-			template<bool b, class char_t> const char_t* boolean(void);
-			template<> inline const char* boolean<true, char>(void) {return "true";}
-			template<> inline const wchar_t* boolean<true, wchar_t>(void) {return L"true";}
-			template<> inline const char* boolean<false, char>(void) {return "false";}
-			template<> inline const wchar_t* boolean<false, wchar_t>(void) {return L"false";}
+			template<bool b, class char_t> const char_t* boolean();
+			template<> inline const char* boolean<true, char>() {return "true";}
+			template<> inline const wchar_t* boolean<true, wchar_t>() {return L"true";}
+			template<> inline const char* boolean<false, char>() {return "false";}
+			template<> inline const wchar_t* boolean<false, wchar_t>() {return L"false";}
 
-			inline size_t boolean_true_length(void) {return 4;}
-			inline size_t boolean_false_length(void) {return 5;}
+			inline size_t boolean_true_length() {return 4;}
+			inline size_t boolean_false_length() {return 5;}
 
-			template<class char_t> const char_t* nil_null(void);
-			template<> inline const char* nil_null<char>(void) {return "null";}
-			template<> inline const wchar_t* nil_null<wchar_t>(void) {return L"null";}
+			template<class char_t> const char_t* nil_null();
+			template<> inline const char* nil_null<char>() {return "null";}
+			template<> inline const wchar_t* nil_null<wchar_t>() {return L"null";}
 
-			inline size_t nil_null_length(void) {return 4;}
+			inline size_t nil_null_length() {return 4;}
 
 			template<class char_t> int64_t ttoi64(const char_t* in, char_t** end);
 			template<> int64_t ttoi64<char>(const char* in, char** end) {return strtoll(in, end, 10);}
