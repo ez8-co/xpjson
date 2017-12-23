@@ -1,5 +1,5 @@
 /*
-  xpjson —— A minimal Xross-Platform/eXtreme-Performance JSON read & write library in C++.
+  xpjson -- A minimal Xross-Platform/eXtreme-Performance JSON read & write library in C++.
 
   Copyright (c) 2010-2017 <http://ez8.co> <orca.zhang@yahoo.com>
   This library is released under the MIT Licence.
@@ -286,9 +286,9 @@ namespace JSON
 		/** Assign function from STD string  */
 		inline void assign(tstring&& s, bool escape = true) {clear(STRING); *_s = JSON_MOVE(s); _e = escape;}
 		/** Assign function from pointer to Object. */
-		inline void assign(ObjectT<char_t>&& o) {clear(OBJECT); *_o = JSON_MOVE(o);}
+		inline void assign(ObjectT<char_t>&& o) {clear(OBJECT); _o->swap(o);}
 		/** Assign function from pointer to Array. */
-		inline void assign(ArrayT<char_t>&& a) {clear(ARRAY); *_a = JSON_MOVE(a);}
+		inline void assign(ArrayT<char_t>&& a) {clear(ARRAY); _a->swap(a);}
 #endif
 
 		/** Assignment operator. */
@@ -473,8 +473,8 @@ namespace JSON
 			if(_type == NIL) {_type = ARRAY; _a = new ArrayT<char_t>;}
 			JSON_ASSERT_CHECK(pos >= 0, std::underflow_error, "Array index underflow");
 			JSON_CHECK_TYPE(_type, ARRAY);
-			if (pos >= _a->size()) _a->resize(pos + 1);
-			return (*_a)[pos];
+			if ((size_t)pos >= _a->size()) _a->resize((size_t)pos + 1);
+			return (*_a)[(size_t)pos];
 		}
 
 		/** Support get value with elegant cast. */
