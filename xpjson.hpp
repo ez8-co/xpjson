@@ -246,7 +246,7 @@ namespace JSON
 		ValueT(const ArrayT<char_t>& a) : _type(ARRAY), _a(0) {_a = new ArrayT<char_t>(a);}
 #ifdef __XPJSON_SUPPORT_MOVE__
 		/** Move constructor. */
-		ValueT(ValueT<char_t>&& v) : _type(v._type) {assign(JSON_MOVE(v));}
+		ValueT(ValueT<char_t>&& v) : _type(NIL) {clear(v._type); assign(JSON_MOVE(v));}
 		/** Move constructor from STD string  */
 		ValueT(tstring&& s, bool escape = true) : _type(STRING), _e(escape), _s(0) {_s = new tstring(JSON_MOVE(s));}
 		/** Move constructor from pointer to Object. */
@@ -284,11 +284,11 @@ namespace JSON
 		void assign(ValueT<char_t>&& v);
  		// Fix: use swap rather than operator= to avoid bug under VS2010
 		/** Assign function from STD string  */
-		inline void assign(tstring&& s, bool escape = true) {clear(STRING); _s->clear(); (*_s).swap(s); _e = escape;}
+		inline void assign(tstring&& s, bool escape = true) {clear(STRING); *_s = JSON_MOVE(s); _e = escape;}
 		/** Assign function from pointer to Object. */
-		inline void assign(ObjectT<char_t>&& o) {clear(OBJECT); _o->clear(); (*_o).swap(o);}
+		inline void assign(ObjectT<char_t>&& o) {clear(OBJECT); *_o = JSON_MOVE(o);}
 		/** Assign function from pointer to Array. */
-		inline void assign(ArrayT<char_t>&& a) {clear(ARRAY); _a->clear(); (*_a).swap(a);}
+		inline void assign(ArrayT<char_t>&& a) {clear(ARRAY); *_a = JSON_MOVE(a);}
 #endif
 
 		/** Assignment operator. */
