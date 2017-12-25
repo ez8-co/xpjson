@@ -4,7 +4,13 @@
 #include "ut_xpjsonW.h"
 
 #ifdef _WIN32
-	#pragma comment(lib, "gtest.lib")
+	#ifdef _DEBUG
+		#pragma comment(lib, "gtestd.lib")
+		#pragma comment(lib, "gtest_maind.lib")
+	#else
+		#pragma comment(lib, "gtest.lib")
+		#pragma comment(lib, "gtest_main.lib")
+	#endif
 #endif
 
 int main(int argc, char** argv)

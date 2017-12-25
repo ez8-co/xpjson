@@ -554,7 +554,7 @@ TEST(ut_xpjson, bracket_operator)
 		for(unsigned char i = 0; i < a.a().size(); ++i) {
 			ASSERT_TRUE(a[i] == i + 1);
 		}
-		for(uint i = 0; i < a.a().size(); ++i) {
+		for(size_t i = 0; i < a.a().size(); ++i) {
 			a[i] = i;
 		}
 		for(uint64_t i = 0; i < a.a().size(); ++i) {
