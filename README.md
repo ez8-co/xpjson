@@ -43,12 +43,12 @@
 }
 ```
 
-#### serialization example
+#### write example
 
-- You can rapidly start serialization by according to following example.
+- You can rapidly start writing by according to following example.
 
 ``` cpp
-#include "../xpjson.hpp"
+#include "xpjson.hpp"
 #include <iostream>
 
 int main()
@@ -79,7 +79,7 @@ int main()
 - But it's not a optimized one compared with the following example. 
 
 ``` cpp
-#include "../xpjson.hpp"
+#include "xpjson.hpp"
 #include <iostream>
 
 int main()
@@ -112,12 +112,12 @@ int main()
 }
 ```
 
-#### deserialization example
+#### read example
 
-- And you can deserialize the stream by according to following example.
+- And you can read the stream by according to following example.
 
 ``` cpp
-#include "../xpjson.hpp"
+#include "xpjson.hpp"
 #include <iostream>
 #include <cassert>
 
@@ -175,9 +175,9 @@ python
 - Can **skip detection** that whether string needs to be encoded or escaped.
   - Enable detecttion as default.
     - Use a flag to skip when put string.
-    - Auto set during deserialization if skip is possible.
+    - Auto set during `read` if skip is possible.
   - Invalid after modifications (or possible modifications like get reference operation as memory watch is not ready now).
-  - Which should not check every character during serialization and may gain SIMD intrinsics benefits of memxxx APIs (about 30% bonous as benchmark said).
+  - Which should not check every character during `write` and may gain SIMD intrinsics benefits of memxxx APIs (about 30% bonous as benchmark said).
 - **No useless pretty print** (indent, CRLF, space and other formats).
   - Gaudy feature I think, because performance, size of packet and binaries is most important, not low-frequency debug dump.
   - Use online json-validation web or web browser console to show them in pretty formats instead.
@@ -193,7 +193,7 @@ python
 ### TODO
 
 - Reader & Writer for file / stream.
-- New *readv* method by passing *iovec* param.
+- New `readv` method by passing *iovec* param.
 - Optimization of using CPU intrinsics set.
 
 ### WIP
