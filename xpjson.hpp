@@ -65,7 +65,7 @@ using namespace std;
 #	define LPRId64 		L"lld"
 #endif
 
-#ifdef _WIN32
+#ifdef _MSC_VER
 // disable performance degradation warnings on casting from arithmetic type to bool
 #	pragma warning(disable:4800)
 // disable deprecated interface warnings
