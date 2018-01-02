@@ -5,7 +5,7 @@
 [![Build Status](https://travis-ci.org/ez8-co/xpjson.svg?branch=master)](https://travis-ci.org/ez8-co/xpjson)
 [![codecov](https://codecov.io/gh/ez8-co/xpjson/branch/master/graph/badge.svg)](https://codecov.io/gh/ez8-co/xpjson)
 
-- A minimal Xross-Platform/Xtreme-Performance JSON serialization & deserialization library in C++.
+- A minimal Xross-Platform JSON read & write library in C++.
 
 ### Why use xpjson?
 
@@ -199,7 +199,7 @@ python
 ### WIP
 
 - Small string optimization (SSO) support.
-- Direct memory access (DMA) support for string.
+- Direct memory access (DMA)/ Copy on write (COW) support for string.
 
 ### Misc
 

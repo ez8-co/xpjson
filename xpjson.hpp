@@ -1,8 +1,8 @@
 /*
-  xpjson -- A minimal Xross-Platform/eXtreme-Performance JSON read & write library in C++.
+  xpjson -- A minimal Xross-Platform JSON read & write library in C++.
 
   Copyright (c) 2010-2017 <http://ez8.co> <orca.zhang@yahoo.com>
-  This library is released under the MIT Licence.
+  This library is released under the MIT License.
 
   Please see LICENSE file or visit https://github.com/ez8-co/xpjson for details.
  */

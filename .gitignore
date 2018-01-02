@@ -43,6 +43,7 @@ Makefile
 
 # coverage files
 *coverage*
+*result*
 
 # Tesing files
 Testing
