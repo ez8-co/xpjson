@@ -497,6 +497,10 @@ namespace JSON
 			If error occurred, throws an exception.
 		*/
 		size_t read(const char_t* in, size_t len);
+		size_t read(const tstring& in)
+		{
+			return read(in.data(), in.size());
+		}
 
 	protected:
 
