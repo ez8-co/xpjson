@@ -196,11 +196,6 @@ python
 - New `readv` method by passing *iovec* param.
 - Optimization of using CPU intrinsics set.
 
-### WIP
-
-- Small string optimization (SSO) support.
-- Direct memory access (DMA)/ Copy on write (COW) support for string.
-
 ### Misc
 
 - Please feel free to use xpjson.
