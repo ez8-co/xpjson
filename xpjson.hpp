@@ -952,9 +952,11 @@ namespace JSON
 		if((_e = escape)) {
 			if(_sso || _dma) {
 				_sso = _dma = false;
-				_s = new tstring;
+				_s = new tstring(s, l);
 			}
-			detail::decode(s, l, *_s);
+			else {
+				_s->assign(s, l);
+			}
 		}
 		else if(dma && l <= (uint)-1) {
 			if(!_sso && !_dma) delete _s;
@@ -972,12 +974,15 @@ namespace JSON
 		else {
 			if(_sso || _dma) {
 				_sso = _dma = false;
-				_s = new tstring;
+				_s = new tstring(s, l);
 			}
-			_s->assign(s, l);
+			else {
+				_s->assign(s, l);
+			}
 		}
 	}
-		
+
+#ifdef __XPJSON_SUPPORT_MOVE__
 	template<class char_t>
 	void ValueT<char_t>::assign(tstring&& s, bool escape)
 	{
@@ -989,6 +994,7 @@ namespace JSON
 		_s->swap(s);
 		_e = escape;
 	}
+#endif
 
 	template<class char_t>
 	void ValueT<char_t>::assign(const ValueT<char_t>& v)
@@ -1081,15 +1087,17 @@ namespace JSON
 					case INTEGER: return T(v.i());
 					case FLOAT:   return T(v.f());
 					case STRING:
-						if(v.s() == boolean<true, char_t>()) return T(1);
-						else if(v.s() == boolean<false, char_t>()) return T(0);
+						if(v.length() == detail::boolean_true_length() && !memcmp(v.c_str(), detail::boolean<true, char_t>(), detail::boolean_true_length() * sizeof(char_t)))
+							return T(1);
+						else if(v.length() == detail::boolean_false_length() && !memcmp(v.c_str(), detail::boolean<false, char_t>(), detail::boolean_false_length() * sizeof(char_t)))
+							return T(0);
 						else {
 							char_t* end = 0;
-							double d = ttod(v.s().c_str(), &end);
-							JSON_ASSERT_CHECK1(end == &v.s()[0] + v.s().length(), "Type-casting error: (%s) to arithmetic.", detail::get_cstr(v.s().c_str(), v.s().length()).c_str());
+							double d = ttod(v.c_str(), &end);
+							JSON_ASSERT_CHECK1(end == v.c_str() + v.length(), "Type-casting error: (%s) to arithmetic.", detail::get_cstr(v.c_str(), v.length()).c_str());
 							return T(d);
 						}
-						JSON_ASSERT_CHECK1(false, "Type-casting error: (%s) to arithmetic.", detail::get_cstr(v.s().c_str(), v.s().length()).c_str());
+						JSON_ASSERT_CHECK1(false, "Type-casting error: (%s) to arithmetic.", detail::get_cstr(v.c_str(), v.length()).c_str());
 					default: JSON_ASSERT_CHECK1(false, "Type-casting error: from (%s) type to arithmetic.", get_type_name(v.type()));
 				}
 				return T(value);
@@ -1104,7 +1112,7 @@ namespace JSON
 					case BOOLEAN: return T(v.b() ? detail::boolean<true, char_t>() : detail::boolean<false, char_t>());
 					case INTEGER: return to_string<int64_t, char_t>(v.i());
 					case FLOAT:   return to_string<double, char_t>(v.f());
-					case STRING:  return T(v.s());
+					case STRING:  return T(v.c_str(), v.length());
 					default: JSON_ASSERT_CHECK1(false, "Type-casting error: from (%s) type to string.", get_type_name(v.type()));
 				}
 				return T(value);
@@ -1181,7 +1189,17 @@ namespace JSON
 					switch(in[pos]) {
 						case '\\': state = ESCAPE; _e = true; break;
 						case '\"': {
-							assign(in + start, pos - start, _e);
+							if(_e) {
+								clear(STRING);
+								if(_sso || _dma) {
+									_sso = _dma = false;
+									_s = new tstring;
+								}
+								detail::decode(in + start, pos - start, *_s);
+							}
+							else {
+								assign(in + start, pos - start, _e);
+							}
 							return pos + 1;
 						}
 						default:
@@ -1296,7 +1314,7 @@ GOTO_END:
 			switch(in[pos]) {
 				case 'n':
 					JSON_PARSE_CHECK(len - pos >= detail::nil_null_length());
-					if(memcmp(in + pos, detail::nil_null<char_t>(), detail::nil_null_length() * sizeof(char_t)) == 0) {
+					if(! memcmp(in + pos, detail::nil_null<char_t>(), detail::nil_null_length() * sizeof(char_t))) {
 						clear();
 						return pos + detail::nil_null_length();
 					}
@@ -1317,7 +1335,7 @@ GOTO_END:
 			switch(in[pos]) {
 				case 't':
 					JSON_PARSE_CHECK(len - pos >= detail::boolean_true_length());
-					if(memcmp(in + pos, detail::boolean<true, char_t>(), detail::boolean_true_length() * sizeof(char_t)) == 0) {
+					if(!memcmp(in + pos, detail::boolean<true, char_t>(), detail::boolean_true_length() * sizeof(char_t))) {
 						clear(BOOLEAN);
 						_b = true;
 						return pos + detail::boolean_true_length();
@@ -1325,7 +1343,7 @@ GOTO_END:
 					break;
 				case 'f':
 					JSON_PARSE_CHECK(len - pos >= detail::boolean_false_length());
-					if(memcmp(in + pos, detail::boolean<false, char_t>(), detail::boolean_false_length() * sizeof(char_t)) == 0) {
+					if(!memcmp(in + pos, detail::boolean<false, char_t>(), detail::boolean_false_length() * sizeof(char_t))) {
 						clear(BOOLEAN);
 						_b = false;
 						return pos + detail::boolean_false_length();
