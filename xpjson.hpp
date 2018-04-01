@@ -1062,7 +1062,7 @@ namespace JSON
 				case OBJECT:  swap(_o, v._o); break;
 				case ARRAY:   swap(_a, v._a); break;
 			}
-			v._type = NIL;
+			v.clear();
 		}
 	}
 #endif
