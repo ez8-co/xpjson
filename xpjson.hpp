@@ -959,11 +959,7 @@ namespace JSON
 			escape = DONT_ESCAPE;
 			size_t pos = 0;
 			while(pos < l) {
-				if(s[pos] == '\\') {
-					escape = NEED_ESCAPE;
-					break;
-				}
-				else if((escape = detail::check_need_conv<char_t>(s[pos])))
+				if((escape = detail::check_need_conv<char_t>(s[pos])))
 					break;
 				++pos;
 			}
@@ -1008,12 +1004,8 @@ namespace JSON
 		if(escape == AUTO_DETECT) {
 			escape = DONT_ESCAPE;
 			size_t pos = 0;
-			while(pos < l) {
-				if(s[pos] == '\\') {
-					escape = NEED_ESCAPE;
-					break;
-				}
-				else if((escape = detail::check_need_conv<char_t>(s[pos])))
+			while(pos < s.length()) {
+				if((escape = detail::check_need_conv<char_t>(s[pos])))
 					break;
 				++pos;
 			}
@@ -1061,7 +1053,7 @@ namespace JSON
 				case STRING:
 					if(!_sso && !_dma && !v._sso && !v._dma) {
 						swap(_s, v._s);
-						swap(_e, v._e);
+						_e = v._e;
 					}
 					else {
 						assign(v.c_str(), v.length(), v._e, v._dma);
@@ -1204,7 +1196,7 @@ namespace JSON
 	template<class char_t>
 	size_t ValueT<char_t>::read_string(const char_t* in, size_t len, bool dma)
 	{
-		enum {NONE = 0, NORMAL, ESCAPE};
+		enum {NONE = 0, NORMAL};
 		unsigned char state = NONE;
 		size_t pos = 0;
 		size_t start = 0;
@@ -1220,8 +1212,7 @@ namespace JSON
 					break;
 				case NORMAL:
 					switch(in[pos]) {
-						case '\\': state = ESCAPE; _e = true; break;
-						case '\"': {
+						case '\"':
 							if(_e) {
 								clear(STRING);
 								if(_sso || _dma) {
@@ -1234,14 +1225,11 @@ namespace JSON
 								assign(in + start, pos - start, _e, dma);
 							}
 							return pos + 1;
-						}
 						default:
 							if(!_e) _e = detail::check_need_conv<char_t>(in[pos]);
+							if(_e && in[pos] == '\\') ++pos;
 							break;
 					}
-					break;
-				case ESCAPE:
-					state = NORMAL;
 					break;
 			}
 			++pos;
@@ -1559,16 +1547,13 @@ GOTO_END:
 	void WriterT<char_t>::write(const ObjectT<char_t>& o, JSON_TSTRING(char_t)& out)
 	{
 		out += '{';
-		typename ObjectT<char_t>::const_iterator it = o.begin();
-		typename ObjectT<char_t>::const_iterator it_end = o.end();
-		while(it != it_end) {
+		for(typename ObjectT<char_t>::const_iterator it = o.begin(); it != o.end(); ++it) {
 			out += '\"';
 			detail::encode(it->first.c_str(), it->first.length(), out);
 			out += '\"';
 			out += ':';
 			it->second.write(out);
 			out += ',';
-			++it;
 		}
 		if(out[out.length() - 1] != '{') out[out.length() - 1] = '}'; else out += '}';
 	}
@@ -1577,9 +1562,8 @@ GOTO_END:
 	void WriterT<char_t>::write(const ArrayT<char_t>& a, JSON_TSTRING(char_t)& out)
 	{
 		out += '[';
-		size_t i = 0;
-		while(i < a.size()) {
-			a[i++].write(out);
+		for(size_t i = 0; i < a.size(); ++i) {
+			a[i].write(out);
 			out += ',';
 		}
 		if(out[out.length() - 1] != '[') out[out.length() - 1] = ']'; else out += ']';
@@ -1592,8 +1576,7 @@ GOTO_END:
 		typename ObjectT<char_t>::const_iterator lit = lhs.begin();
 		typename ObjectT<char_t>::const_iterator rit = rhs.begin();
 		for(; lit != lhs.end(); ++lit, ++rit) {
-			if(lit->first != rit->first) return false;
-			if(lit->second != rit->second) return false;
+			if(lit->first != rit->first || lit->second != rit->second) return false;
 		}
 		return true;
 	}
