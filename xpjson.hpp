@@ -96,6 +96,12 @@ using namespace std;
 
 #define JSON_EPSILON				FLT_EPSILON
 
+typedef enum ESCAPE_TYPE {
+	AUTO_DETECT = -1,
+	DONT_ESCAPE = 0,
+	NEED_ESCAPE = 1
+} ESCAPE_TYPE;
+
 namespace JSON
 {
 	namespace detail
@@ -482,11 +488,11 @@ template<> inline void to_string<type, char_t>(const type& v, JSON_TSTRING(char_
 #undef JSON_FLOAT_CTOR
 
 		/** Constructor from pointer to char(C-string).  */
-		ValueT(const char_t* s, bool escape = true, bool dma = true) : _type(NIL) {assign(s, detail::tcslen(s), escape, dma);}
+		ValueT(const char_t* s, int escape = AUTO_DETECT, bool dma = false) : _type(NIL) {assign(s, detail::tcslen(s), escape, dma);}
 		/** Constructor from pointer to char(C-string).  */
-		ValueT(const char_t* s, size_t l, bool escape = true, bool dma = true) : _type(NIL) {assign(s, l, escape, dma);}
+		ValueT(const char_t* s, size_t l, int escape = AUTO_DETECT, bool dma = false) : _type(NIL) {assign(s, l, escape, dma);}
 		/** Constructor from STD string  */
-		ValueT(const tstring& s, bool escape = true, bool dma = true) : _type(NIL) {assign(s.data(), s.size(), escape, dma);}
+		ValueT(const tstring& s, int escape = AUTO_DETECT, bool dma = false) : _type(NIL) {assign(s.data(), s.size(), escape, dma);}
 		/** Constructor from pointer to Object. */
 		ValueT(const ObjectT<char_t>& o) : _type(OBJECT), _o(0) {_o = new ObjectT<char_t>(o);}
 		/** Constructor from pointer to Array. */
@@ -495,7 +501,7 @@ template<> inline void to_string<type, char_t>(const type& v, JSON_TSTRING(char_
 		/** Move constructor. */
 		ValueT(ValueT<char_t>&& v) : _type(NIL) {assign(JSON_MOVE(v));}
 		/** Move constructor from STD string  */
-		ValueT(tstring&& s, bool escape = true) : _type(NIL) {assign(JSON_MOVE(s), escape);}
+		ValueT(tstring&& s, int escape = AUTO_DETECT) : _type(NIL) {assign(JSON_MOVE(s), escape);}
 		/** Move constructor from pointer to Object. */
 		ValueT(ObjectT<char_t>&& o) : _type(OBJECT), _o(0) {_o = new ObjectT<char_t>(JSON_MOVE(o));}
 		/** Move constructor from pointer to Array. */
@@ -517,11 +523,11 @@ template<> inline void to_string<type, char_t>(const type& v, JSON_TSTRING(char_
 		inline typename detail::json_enable_if<detail::json_is_floating_point<T>::value>::type
 		assign(T f) {clear(FLOAT); _f = f;}
 		/** Assign function from pointer to char(C-string).  */
-		inline void assign(const char_t* s, bool escape = true, bool dma = true) {assign(s, detail::tcslen(s), escape, dma);}
+		inline void assign(const char_t* s, int escape = AUTO_DETECT, bool dma = true) {assign(s, detail::tcslen(s), escape, dma);}
 		/** Assign function from pointer to char(C-string).  */
-		inline void assign(const char_t* s, size_t l, bool escape = true, bool dma = true);
+		inline void assign(const char_t* s, size_t l, int escape = AUTO_DETECT, bool dma = true);
 		/** Assign function from STD string  */
-		inline void assign(const tstring& s, bool escape = true, bool dma = true) {assign(s.data(), s.size(), escape, dma);}
+		inline void assign(const tstring& s, int escape = AUTO_DETECT, bool dma = true) {assign(s.data(), s.size(), escape, dma);}
 		/** Assign function from pointer to Object. */
 		inline void assign(const ObjectT<char_t>& o) {clear(OBJECT); *_o = o;}
 		/** Assign function from pointer to Array. */
@@ -531,7 +537,7 @@ template<> inline void to_string<type, char_t>(const type& v, JSON_TSTRING(char_
 		void assign(ValueT<char_t>&& v);
  		// Fix: use swap rather than operator= to avoid bug under VS2010
 		/** Assign function from STD string  */
-		inline void assign(tstring&& s, bool escape = true);
+		inline void assign(tstring&& s, int escape = AUTO_DETECT);
 		/** Assign function from pointer to Object. */
 		inline void assign(ObjectT<char_t>&& o) {clear(OBJECT); _o->clear(); _o->swap(o);}
 		/** Assign function from pointer to Array. */
@@ -790,11 +796,11 @@ template<> inline void to_string<type, char_t>(const type& v, JSON_TSTRING(char_
 			Return char_t count(offset) parsed.
 			If error occurred, throws an exception.
 		*/
-		size_t read_nil(const char_t* in, size_t len);
-		size_t read_boolean(const char_t* in, size_t len);
-		size_t read_number(const char_t* in, size_t len);
+		size_t read_nil(const char_t* in, size_t len, bool dma = true);
+		size_t read_boolean(const char_t* in, size_t len, bool dma = true);
+		size_t read_number(const char_t* in, size_t len, bool dma = true);
 		/* NOTE: MUST with quotes.*/
-		size_t read_string(const char_t* in, size_t len);
+		size_t read_string(const char_t* in, size_t len, bool dma = true);
 
 		Type _type        : 3;
 		mutable bool _sso : 1; // small string optimization
@@ -946,9 +952,22 @@ namespace JSON
 	}
 
 	template<class char_t>
-	void ValueT<char_t>::assign(const char_t* s, size_t l, bool escape, bool dma)
+	void ValueT<char_t>::assign(const char_t* s, size_t l, int escape, bool dma)
 	{
 		clear(STRING);
+		if(escape == AUTO_DETECT) {
+			escape = DONT_ESCAPE;
+			size_t pos = 0;
+			while(pos < l) {
+				if(s[pos] == '\\') {
+					escape = NEED_ESCAPE;
+					break;
+				}
+				else if((escape = detail::check_need_conv<char_t>(s[pos])))
+					break;
+				++pos;
+			}
+		}
 		if((_e = escape)) {
 			if(_sso || _dma) {
 				_sso = _dma = false;
@@ -984,8 +1003,21 @@ namespace JSON
 
 #ifdef __XPJSON_SUPPORT_MOVE__
 	template<class char_t>
-	void ValueT<char_t>::assign(tstring&& s, bool escape)
+	void ValueT<char_t>::assign(tstring&& s, int escape)
 	{
+		if(escape == AUTO_DETECT) {
+			escape = DONT_ESCAPE;
+			size_t pos = 0;
+			while(pos < l) {
+				if(s[pos] == '\\') {
+					escape = NEED_ESCAPE;
+					break;
+				}
+				else if((escape = detail::check_need_conv<char_t>(s[pos])))
+					break;
+				++pos;
+			}
+		}
 		clear(STRING);
 		if(_sso || _dma) {
 			_sso = _dma = false;
@@ -1027,8 +1059,9 @@ namespace JSON
 				case INTEGER: _i = v._i;   break;
 				case FLOAT:   _f = v._f;   break;
 				case STRING:
-					if(!_sso && !_dma) {
-						assign(JSON_MOVE(v.s()), v._e);
+					if(!_sso && !_dma && !v._sso && !v._dma) {
+						swap(_s, v._s);
+						swap(_e, v._e);
 					}
 					else {
 						assign(v.c_str(), v.length(), v._e, v._dma);
@@ -1169,7 +1202,7 @@ namespace JSON
 #define case_number_ending	case_white_space: case ',':case ']':case '}'
 
 	template<class char_t>
-	size_t ValueT<char_t>::read_string(const char_t* in, size_t len)
+	size_t ValueT<char_t>::read_string(const char_t* in, size_t len, bool dma)
 	{
 		enum {NONE = 0, NORMAL, ESCAPE};
 		unsigned char state = NONE;
@@ -1198,7 +1231,7 @@ namespace JSON
 								detail::decode(in + start, pos - start, *_s);
 							}
 							else {
-								assign(in + start, pos - start, _e);
+								assign(in + start, pos - start, _e, dma);
 							}
 							return pos + 1;
 						}
@@ -1217,7 +1250,7 @@ namespace JSON
 	}
 
 	template<class char_t>
-	size_t ValueT<char_t>::read_number(const char_t* in, size_t len)
+	size_t ValueT<char_t>::read_number(const char_t* in, size_t len, bool)
 	{
 		enum {NONE = 0,SIGN, ZERO, DIGIT, POINT, DIGIT_FRAC, EXP, EXP_SIGN, DIGIT_EXP};
 		unsigned char state = NONE;
@@ -1307,7 +1340,7 @@ GOTO_END:
 	}
 
 	template<class char_t>
-	size_t ValueT<char_t>::read_nil(const char_t* in, size_t len)
+	size_t ValueT<char_t>::read_nil(const char_t* in, size_t len, bool)
 	{
 		size_t pos = 0;
 		while(pos < len) {
@@ -1328,7 +1361,7 @@ GOTO_END:
 	}
 
 	template<class char_t>
-	size_t ValueT<char_t>::read_boolean(const char_t* in, size_t len)
+	size_t ValueT<char_t>::read_boolean(const char_t* in, size_t len, bool)
 	{
 		size_t pos = 0;
 		while(pos < len) {
@@ -1373,7 +1406,7 @@ GOTO_END:
 	}
 
 	template<class char_t>
-	size_t ValueT<char_t>::read(const char_t* in, size_t len, bool dma/* = false*/)
+	size_t ValueT<char_t>::read(const char_t* in, size_t len, bool dma/* = true*/)
 	{
 		// Indicate current parse state
 		enum {NONE = 0,
@@ -1391,7 +1424,7 @@ GOTO_END:
 		size_t pos = 0;
 		union {
 			size_t start;
-			size_t(ValueT<char_t>::*fp)(const char_t*, size_t);
+			size_t(ValueT<char_t>::*fp)(const char_t*, size_t, bool);
 		} u;
 		memset(&u, 0, sizeof(u));
 		vector<ValueT<char_t>*> pv(1, this);
@@ -1481,7 +1514,7 @@ GOTO_END:
 							pv.push_back(&pv.back()->_a->back());
 						}
 						// ++pos at last, so minus 1 here.
-						pos += (pv.back()->*u.fp)(in + pos, len - pos) - 1;
+						pos += (pv.back()->*u.fp)(in + pos, len - pos, dma) - 1;
 						u.fp = 0;
 						// pop nil/number/boolean/string Value
 						pv.pop_back();
