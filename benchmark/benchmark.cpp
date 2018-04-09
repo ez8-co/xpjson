@@ -152,7 +152,7 @@ TEST(benchmark_xpjson, read)
 		do {
 			JSON::Value v;
 			tc.start();
-			JSON::Reader::read(v, in.c_str(), in.length());
+			JSON::Reader::read(v, in);
 			tc.end();
 		}
 		while (--times);

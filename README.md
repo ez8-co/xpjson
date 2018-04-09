@@ -125,7 +125,7 @@ int main()
 {
   string in("{\"orca\":{\"personalities\":{\"age\":28,\"company\":\"ez8.co\",\"name\":\"Zhang Wei\",\"sex\":\"male\"},\"skills\":[\"C++\",\"golang\",\"python\"]}}");
   JSON::Value v;
-  size_t ret = v.read(in.c_str(), in.length());
+  size_t ret = v.read(in);
   assert(ret == in.length());
 
   JSON::Object& orca = v["orca"].o();
