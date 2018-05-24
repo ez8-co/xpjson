@@ -31,8 +31,8 @@
         "personalities": {
             "age": 28,
             "company": "ez8.co",
-            "name": "Zhang Wei",
-            "sex": "male"
+            "gender": "male",
+            "name": "Zhang Wei"
         },
         "skills": [
             "C++",
@@ -55,7 +55,7 @@ int main()
 {
   JSON::Value v;
   v["orca"]["personalities"]["name"] = "Zhang Wei";
-  v["orca"]["personalities"]["sex"] = "male";
+  v["orca"]["personalities"]["gender"] = "male";
   v["orca"]["personalities"]["company"] = "ez8.co";
   v["orca"]["skills"][0] = "C++";
   v["orca"]["skills"][1] = "golang";
@@ -73,7 +73,7 @@ int main()
 
 ```
 ~$ ./xpjson_example1
-{"orca":{"personalities":{"age":28,"company":"ez8.co","name":"Zhang Wei","sex":"male"},"skills":["C++","golang","python"]}}
+{"orca":{"personalities":{"age":28,"company":"ez8.co","gender":"male","name":"Zhang Wei"},"skills":["C++","golang","python"]}}
 ```
 
 - But it's not a optimized one compared with the following example. 
@@ -89,7 +89,7 @@ int main()
 
   JSON::Object& personalities = orca["personalities"].o();
   personalities["name"] = "Zhang Wei";
-  personalities["sex"] = "male";
+  personalities["gender"] = "male";
   personalities["company"] = "ez8.co";
 
   JSON::Array& skills = orca["skills"].a();
@@ -123,7 +123,7 @@ int main()
 
 int main()
 {
-  string in("{\"orca\":{\"personalities\":{\"age\":28,\"company\":\"ez8.co\",\"name\":\"Zhang Wei\",\"sex\":\"male\"},\"skills\":[\"C++\",\"golang\",\"python\"]}}");
+  string in("{\"orca\":{\"personalities\":{\"age\":28,\"company\":\"ez8.co\",\"gender\":\"male\",\"name\":\"Zhang Wei\"},\"skills\":[\"C++\",\"golang\",\"python\"]}}");
   JSON::Value v;
   size_t ret = v.read(in);
   assert(ret == in.length());
@@ -157,8 +157,8 @@ int main()
 Personalities:
 age -> 28
 company -> ez8.co
+gender -> male
 name -> Zhang Wei
-sex -> male
 
 Skills:
 C++
@@ -200,4 +200,4 @@ python
 
 - Please feel free to use xpjson.
 - Looking forward to your suggestions.
-- If your project is using xpjson, you can show your project or company here by creating a issue or let we know.
+- If your project is using xpjson, you can show your project or company here by creating a issue or let me know.
