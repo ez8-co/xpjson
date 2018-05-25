@@ -4,6 +4,7 @@
 
 #include <iostream>
 #include "../xpjson.hpp"
+using namespace std;
 
 TEST(ut_xpjsonW, write)
 {

@@ -21,7 +21,6 @@
 #include <cfloat>
 #include <stdexcept>
 #include <algorithm>
-using namespace std;
 
 // support redundant dangling comma like : [1,]  {"a":"b",}
 #ifndef __XPJSON_SUPPORT_DANGLING_COMMA__
@@ -73,9 +72,9 @@ using namespace std;
 #endif
 
 #ifdef _WIN32
-#	define JSON_TSTRING(type)			basic_string<type, char_traits<type>, allocator<type> >
+#	define JSON_TSTRING(type)			std::basic_string<type, char_traits<type>, allocator<type> >
 #else
-#	define JSON_TSTRING(type)			basic_string<type>
+#	define JSON_TSTRING(type)			std::basic_string<type>
 #endif
 
 #define JSON_ASSERT_CHECK(expression, exception_type, what)	\
@@ -810,7 +809,7 @@ template<> inline void to_string<type, char_t>(const type& v, JSON_TSTRING(char_
 				bool _e           : 1; // used for string, indicates needs to be escaped or encoded.
 				char              : 2; // reserved
 			};
-			int _sso_len : 4;
+			uint _sso_len : 4;
 		};
 		char _sso_s[3]; // sso string storage, 15 bytes can be used in fact
 		uint _dma_len;
@@ -1415,7 +1414,7 @@ GOTO_END:
 			size_t(ValueT<char_t>::*fp)(const char_t*, size_t, bool);
 		} u;
 		memset(&u, 0, sizeof(u));
-		vector<ValueT<char_t>*> pv(1, this);
+		std::deque<ValueT<char_t>*> pv(1, this);
 		while(pos < len) {
 			switch(state) {
 				case NONE:

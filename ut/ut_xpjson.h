@@ -5,6 +5,7 @@
 #include <iostream>
 #include <climits>
 #include "../xpjson.hpp"
+using namespace std;
 
 TEST(ut_xpjson, write)
 {
