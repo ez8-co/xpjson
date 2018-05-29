@@ -54,8 +54,6 @@
 #	endif /* other OS */
 
 #	define snprintf 	_snprintf
-#	define strtoll		_strtoi64
-#	define wcstoll		_wcstoi64
 
 #	define PRId64       "I64d"
 #	define LPRId64 		L"I64d"
@@ -69,10 +67,15 @@
 #	pragma warning(disable:4800)
 // disable deprecated interface warnings
 #	pragma warning(disable:4996)
+#	define XPJSON_LIKELY(x)         (x)
+#	define XPJSON_UNLIKELY(x)       (x)
+#else
+#	define XPJSON_LIKELY(x)         (__builtin_expect((x), 1))
+#	define XPJSON_UNLIKELY(x)       (__builtin_expect((x), 0))
 #endif
 
 #ifdef _WIN32
-#	define JSON_TSTRING(type)			std::basic_string<type, char_traits<type>, allocator<type> >
+#	define JSON_TSTRING(type)			std::basic_string<type, std::char_traits<type>, std::allocator<type> >
 #else
 #	define JSON_TSTRING(type)			std::basic_string<type>
 #endif
@@ -179,16 +182,28 @@ namespace JSON
 		}
 
 #define JSON_TO_STRING(type, char_t, fmter, fmt) \
-template<> inline void to_string<type, char_t>(const type& v, JSON_TSTRING(char_t)& out) {internal_to_string<type, char_t>(v, out, fmter, fmt);}
+template<> inline void to_string<type, char_t>(type v, JSON_TSTRING(char_t)& out) {internal_to_string<type, char_t>(v, out, fmter, fmt);}
 
 		template<class T, class char_t>
-		void to_string(const T& v, JSON_TSTRING(char_t)& out);
+		void to_string(T v, JSON_TSTRING(char_t)& out);
 
 		JSON_TO_STRING(int64_t, char,    snprintf, "%" PRId64)
 		JSON_TO_STRING(int64_t, wchar_t, swprintf, L"%" LPRId64)
 		JSON_TO_STRING(double,  char,    snprintf, "%.16g")
 		JSON_TO_STRING(double,  wchar_t, swprintf, L"%.16g")
 #undef JSON_TO_STRING
+
+		template<>
+		inline void to_string<const char*, char>(const char* v, JSON_TSTRING(char)& out)
+		{
+			out += v;
+		}
+
+		template<>
+		inline void to_string<const char*, wchar_t>(const char* v, JSON_TSTRING(wchar_t)& out)
+		{
+			while(*v) out += (wchar_t)*v++;
+		}
 
 		template<class T, class char_t>
 		inline JSON_TSTRING(char_t) to_string(const T& v)
@@ -382,29 +397,6 @@ template<> inline void to_string<type, char_t>(const type& v, JSON_TSTRING(char_
 			}
 		}
 
-		template<bool b, class char_t> const char_t* boolean();
-		template<> inline const char* boolean<true, char>() {return "true";}
-		template<> inline const wchar_t* boolean<true, wchar_t>() {return L"true";}
-		template<> inline const char* boolean<false, char>() {return "false";}
-		template<> inline const wchar_t* boolean<false, wchar_t>() {return L"false";}
-
-		inline size_t boolean_true_length() {return 4;}
-		inline size_t boolean_false_length() {return 5;}
-
-		template<class char_t> const char_t* nil_null();
-		template<> inline const char* nil_null<char>() {return "null";}
-		template<> inline const wchar_t* nil_null<wchar_t>() {return L"null";}
-
-		inline size_t nil_null_length() {return 4;}
-
-		template<class char_t> int64_t ttoi64(const char_t* in, char_t** end);
-		template<> int64_t ttoi64<char>(const char* in, char** end) {return strtoll(in, end, 10);}
-		template<> int64_t ttoi64<wchar_t>(const wchar_t* in, wchar_t** end) {return wcstoll(in, end, 10);}
-
-		template<class char_t> double ttod(const char_t* in, char_t** end);
-		template<> double ttod<char>(const char* in, char** end) {return strtod(in, end);}
-		template<> double ttod<wchar_t>(const wchar_t* in, wchar_t** end) {return wcstod(in, end);}
-
 		template<class char_t> bool check_need_conv(char_t ch);
 		template<> inline bool check_need_conv<char>(char ch) {return ch == '\\' || ch < 0x20;}
 		template<> inline bool check_need_conv<wchar_t>(wchar_t ch) {return ch == '\\' || ch < 0x20 || ch > 0x7F;}
@@ -534,13 +526,12 @@ template<> inline void to_string<type, char_t>(const type& v, JSON_TSTRING(char_
 #ifdef __XPJSON_SUPPORT_MOVE__
 		/** Assign function. */
 		void assign(ValueT<char_t>&& v);
- 		// Fix: use swap rather than operator= to avoid bug under VS2010
 		/** Assign function from STD string  */
 		inline void assign(tstring&& s, int escape = AUTO_DETECT);
 		/** Assign function from pointer to Object. */
-		inline void assign(ObjectT<char_t>&& o) {clear(OBJECT); _o->clear(); _o->swap(o);}
+		inline void assign(ObjectT<char_t>&& o) {clear(OBJECT); *_o = JSON_MOVE(o);}
 		/** Assign function from pointer to Array. */
-		inline void assign(ArrayT<char_t>&& a) {clear(ARRAY); _a->clear(); _a->swap(a);}
+		inline void assign(ArrayT<char_t>&& a) {clear(ARRAY); *_a = JSON_MOVE(a);}
 #endif
 
 		/** Assignment operator. */
@@ -571,7 +562,7 @@ template<> inline void to_string<type, char_t>(const type& v, JSON_TSTRING(char_
 #undef JSON_ASSIGNMENT
 
 		/** Type query. */
-		inline Type type() const {return _type;}
+		inline Type type() const {return (Type)_type;}
 
 		/** Cast operator for bool */
 		inline operator bool() const
@@ -744,7 +735,7 @@ template<> inline void to_string<type, char_t>(const type& v, JSON_TSTRING(char_
 		template<class T> T get(const tstring& key, const T& default_value) const;
 
 		/** Clear current value. */
-		void clear(Type	type = NIL);
+		void clear(unsigned char type = NIL);
 
 		/** Write value to stream. */
 		void write(tstring& out) const;
@@ -777,7 +768,7 @@ template<> inline void to_string<type, char_t>(const type& v, JSON_TSTRING(char_
 				return _s->c_str();
 		}
 
-		uint64_t length() const
+		size_t length() const
 		{
 			JSON_CHECK_TYPE(_type, STRING);
 			if(_sso)
@@ -801,18 +792,18 @@ template<> inline void to_string<type, char_t>(const type& v, JSON_TSTRING(char_
 		/* NOTE: MUST with quotes.*/
 		size_t read_string(const char_t* in, size_t len, bool dma = true);
 
-		Type _type        : 3;
-		mutable bool _sso : 1; // small string optimization
+		unsigned char _type       : 3;
+		mutable bool _sso         : 1; // small string optimization
 		union {
 			struct {     // not sso
 				mutable bool _dma : 1; // used for direct memory access string
 				bool _e           : 1; // used for string, indicates needs to be escaped or encoded.
 				char              : 2; // reserved
 			};
-			uint _sso_len : 4;
+			unsigned int _sso_len : 4;
 		};
 		char _sso_s[3]; // sso string storage, 15 bytes can be used in fact
-		uint _dma_len;
+		unsigned int _dma_len;
 		union {
 			bool    _b;
 			int64_t _i;
@@ -972,7 +963,7 @@ namespace JSON
 				_s->assign(s, l);
 			}
 		}
-		else if(dma && l <= (uint)-1) {
+		else if(dma && l <= (unsigned)-1) {
 			if(!_sso && !_dma) delete _s;
 			_sso = false;
 			_dma = true;
@@ -1067,7 +1058,7 @@ namespace JSON
 #endif
 
 	template<class char_t>
-	void ValueT<char_t>::clear(Type	type /*= NIL*/)
+	void ValueT<char_t>::clear(unsigned char type /*= NIL*/)
 	{
 		if(_type != type) {
 			switch(_type) {
@@ -1111,15 +1102,14 @@ namespace JSON
 					case INTEGER: return T(v.i());
 					case FLOAT:   return T(v.f());
 					case STRING:
-						if(v.length() == detail::boolean_true_length() && !memcmp(v.c_str(), detail::boolean<true, char_t>(), detail::boolean_true_length() * sizeof(char_t)))
+						if(v.length() == 4 && v.c_str()[0] == 't' && v.c_str()[1] == 'r' && v.c_str()[2] == 'u' && v.c_str()[3] == 'e')
 							return T(1);
-						else if(v.length() == detail::boolean_false_length() && !memcmp(v.c_str(), detail::boolean<false, char_t>(), detail::boolean_false_length() * sizeof(char_t)))
+						else if(v.length() == 5 && v.c_str()[0] == 'f' && v.c_str()[1] == 'a' && v.c_str()[2] == 'l' && v.c_str()[3] == 's' && v.c_str()[4] == 'e')
 							return T(0);
 						else {
-							char_t* end = 0;
-							double d = ttod(v.c_str(), &end);
-							JSON_ASSERT_CHECK1(end == v.c_str() + v.length(), "Type-casting error: (%s) to arithmetic.", detail::get_cstr(v.c_str(), v.length()).c_str());
-							return T(d);
+							JSON::ValueT<char_t> vd;
+							vd.read_number(v.c_str(), v.length(), false);
+							return vd.template get<T>(value);
 						}
 						JSON_ASSERT_CHECK1(false, "Type-casting error: (%s) to arithmetic.", detail::get_cstr(v.c_str(), v.length()).c_str());
 					default: JSON_ASSERT_CHECK1(false, "Type-casting error: from (%s) type to arithmetic.", get_type_name(v.type()));
@@ -1133,7 +1123,7 @@ namespace JSON
 			{
 				switch(v.type()) {
 					case NIL:     break;
-					case BOOLEAN: return T(v.b() ? detail::boolean<true, char_t>() : detail::boolean<false, char_t>());
+					case BOOLEAN: return T(to_string<const char*, char_t>(v.b() ? "true" : "false"));
 					case INTEGER: return to_string<int64_t, char_t>(v.i());
 					case FLOAT:   return to_string<double, char_t>(v.f());
 					case STRING:  return T(v.c_str(), v.length());
@@ -1163,13 +1153,13 @@ namespace JSON
 	void ValueT<char_t>::write(tstring& out) const
 	{
 		switch(_type) {
-			case NIL:     out += detail::nil_null<char_t>(); break;
+			case NIL:     detail::to_string("null", out);break;
 			case INTEGER: detail::to_string(_i, out);        break;
 			case FLOAT:   detail::to_string(_f, out);        break;
 			case OBJECT:  WriterT<char_t>::write(*_o, out);  break;
 			case ARRAY:   WriterT<char_t>::write(*_a, out);  break;
 			case BOOLEAN:
-				out += (_b ? detail::boolean<true, char_t>() : detail::boolean<false, char_t>());
+				detail::to_string(_b ? "true" : "false", out);
 				break;
 			case STRING:
 				out += '\"';
@@ -1188,48 +1178,43 @@ namespace JSON
 	}
 
 #define case_white_space	case ' ':case '\n':case '\r':case '\t'
-#define case_number_1_9		case '1':case '2':case '3':case '4':case '5':case '6':case '7':case '8':case '9'
-#define case_number_0_9		case '0':case_number_1_9
+#define case_number_0_9		case '0':case '1':case '2':case '3':case '4':case '5':case '6':case '7':case '8':case '9'
 #define case_number_ending	case_white_space: case ',':case ']':case '}'
+
+	inline bool is_ws(char ch) {
+		static const unsigned char ws_mask[8] = {0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01};
+		static const unsigned char ws_bmap[8] = {0x00, 0x64, 0x00, 0x00, 0x80, 0x00, 0x00, 0x00};
+  		return !((unsigned char)ch & 0xC0) && (ws_bmap[(ch >> 3) & 0x07] & ws_mask[ch & 0x07]);
+	}
 
 	template<class char_t>
 	size_t ValueT<char_t>::read_string(const char_t* in, size_t len, bool dma)
 	{
-		enum {NONE = 0, NORMAL};
-		unsigned char state = NONE;
+		bool e = false;
 		size_t pos = 0;
-		size_t start = 0;
-		_e = false;
+
+		while(pos < len && is_ws(in[pos])) ++pos;
+		JSON_PARSE_CHECK(pos < len && in[pos] == '\"');
+		size_t start = ++pos;
 		while(pos < len) {
-			switch(state) {
-				case NONE:
-					switch(in[pos]) {
-						case '\"': state = NORMAL; start = pos + 1; break;
-						case_white_space:                           break;
-						default: JSON_PARSE_CHECK(false);
+			if(XPJSON_UNLIKELY(in[pos] == '\"')) {
+				_e = e;
+				if(e) {
+					clear(STRING);
+					if(_sso || _dma) {
+						_sso = _dma = false;
+						_s = new tstring;
 					}
-					break;
-				case NORMAL:
-					switch(in[pos]) {
-						case '\"':
-							if(_e) {
-								clear(STRING);
-								if(_sso || _dma) {
-									_sso = _dma = false;
-									_s = new tstring;
-								}
-								detail::decode(in + start, pos - start, *_s);
-							}
-							else {
-								assign(in + start, pos - start, _e, dma);
-							}
-							return pos + 1;
-						default:
-							if(!_e) _e = detail::check_need_conv<char_t>(in[pos]);
-							if(_e && in[pos] == '\\') ++pos;
-							break;
-					}
-					break;
+					detail::decode(in + start, pos - start, *_s);
+				}
+				else {
+					assign(in + start, pos - start, e, dma);
+				}
+				return pos + 1;
+			}
+			else {
+				if(!e) e = detail::check_need_conv<char_t>(in[pos]);
+				if(e && in[pos] == '\\') ++pos;
 			}
 			++pos;
 		}
@@ -1239,110 +1224,124 @@ namespace JSON
 	template<class char_t>
 	size_t ValueT<char_t>::read_number(const char_t* in, size_t len, bool)
 	{
-		enum {NONE = 0,SIGN, ZERO, DIGIT, POINT, DIGIT_FRAC, EXP, EXP_SIGN, DIGIT_EXP};
-		unsigned char state = NONE;
 		size_t pos = 0;
-		size_t start = 0;
-		while(pos < len) {
-			switch(state) {
-				case NONE:
-					switch(in[pos]) {
-						case '-':         state = SIGN;  start = pos; break;
-						case '0':         state = ZERO;  start = pos; break;
-						case_number_1_9:  state = DIGIT; start = pos; break;
-						case_white_space:                             break;
-						default: JSON_PARSE_CHECK(false);
-					}
-					break;
-				case SIGN:
-					switch(in[pos]) {
-						case '0':        state = ZERO;  break;
-						case_number_1_9: state = DIGIT; break;
-						default: JSON_PARSE_CHECK(false);
-					}
-					break;
-				case ZERO:
-					JSON_PARSE_CHECK(in[pos] != '0');
-				case DIGIT:
-					if(!isdigit(in[pos]) || state != DIGIT) {
-						switch(in[pos]) {
-							case '.': state = POINT; break;
-							case_number_ending:      goto GOTO_END;
-							default: JSON_PARSE_CHECK(false);
-						}
-					}
-					break;
-				case POINT:
-					switch(in[pos]) {
-						case_number_0_9: state = DIGIT_FRAC; break;
-						default: JSON_PARSE_CHECK(false);
-					}
-					break;
-				case DIGIT_FRAC:
-					switch(in[pos]) {
-						case_number_0_9:    state = DIGIT_FRAC; break;
-						case 'e': case 'E': state = EXP;        break;
-						case_number_ending:                     goto GOTO_END;
-					}
-					break;
-				case EXP:
-					switch(in[pos]) {
-						case_number_0_9:    state = DIGIT_EXP; break;
-						case '+': case '-': state = EXP_SIGN;  break;
-						default: JSON_PARSE_CHECK(false);
-					}
-					break;
-				case EXP_SIGN:
-					switch(in[pos]) {
-						case_number_0_9: state = DIGIT_EXP; break;
-						default: JSON_PARSE_CHECK(false);
-					}
-					break;
-				case DIGIT_EXP:
-					switch(in[pos]) {
-						case_number_0_9:    break;
-						case_number_ending: goto GOTO_END;
-					}
-					break;
-			}
+		int sign = 1;
+		int dec = -1;
+		int64_t i = 0;
+
+		while(pos < len && is_ws(in[pos])) ++pos;
+
+		JSON_PARSE_CHECK(pos < len);
+
+		if(in[pos] == '-') {
+			sign = -1;
 			++pos;
 		}
-GOTO_END:
-		char_t* end = 0;
-		switch(state) {
-			case ZERO:
-			case DIGIT:
+
+		JSON_PARSE_CHECK(pos < len);
+
+		if(in[pos] == '0') {
+			++pos;
+			if(pos >= len) {
 				clear(INTEGER);
-				_i = detail::ttoi64<char_t>(in + start, &end);
-				JSON_PARSE_CHECK(end == in + pos);
+				_i = 0;
 				return pos;
-			case DIGIT_FRAC:
-			case DIGIT_EXP:
-				clear(FLOAT);
-				_f = detail::ttod<char_t>(in + start, &end);
-				JSON_PARSE_CHECK(end == in + pos);
-				return pos;
+			}
+			switch (in[pos]) {
+				case '.':
+					++dec;
+				case 'e':
+				case 'E':
+					++pos;
+				case_number_ending:
+					break;
+				default:
+					JSON_PARSE_CHECK(false);
+			}
 		}
-		JSON_PARSE_CHECK(false);
+
+		while(in[pos] >= '0' && in[pos] <= '9') {
+			if(XPJSON_LIKELY(i < 1000000000000000000LL)) {
+				i = i * 10 + (in[pos] - '0');
+				if(XPJSON_UNLIKELY(dec >= 0))
+					++dec;
+			}
+			if(++pos >= len)
+				break;
+			if(XPJSON_UNLIKELY(in[pos] == '.')) {
+				JSON_PARSE_CHECK(dec == -1);
+				++pos;
+				++dec;
+			}
+		}
+
+		JSON_PARSE_CHECK(pos != (sign == -1 ? 1 : 0) && dec != 0);
+
+		register int exp = 0;
+		register bool expsign = true;
+		if(pos < len && (in[pos] | 0x20) == 'e') {
+			++pos;
+			JSON_PARSE_CHECK(pos < len);
+			if(in[pos] == '-') {
+				expsign = false;
+				++pos;
+				JSON_PARSE_CHECK(pos < len);
+			}
+			else if(in[pos] == '+') {
+				++pos;
+				JSON_PARSE_CHECK(pos < len);
+			}
+			while(in[pos] >= '0' && in[pos] <= '9') {
+				exp = exp * 10 + (in[pos] - '0');
+				++pos;
+			}
+			exp -= expsign ? dec : -dec;
+		}
+		else {
+			expsign = false;
+			exp = dec;
+		}
+
+		if(pos < len) {
+			switch (in[pos]) {
+				case_number_ending:
+					break;
+				default:
+					JSON_PARSE_CHECK(false);
+			}
+		}
+
+		if(dec == -1) {
+			clear(INTEGER);
+			_i = sign * i;
+		}
+		else {
+			register double base = 1.0;
+			static const double pow10[] = {10., 100., 1.0e4, 1.0e8, 1.0e16, 1.0e32, 1.0e64, 1.0e128, 1.0e256};
+		    for(const double* d = pow10; exp; exp >>= 1, ++d) {
+				if (exp & 1) {
+				    base *= *d;
+				}
+		    }
+			clear(FLOAT);
+		    if(expsign) {
+		    	_f = sign * (double)i * base;
+		    }
+		    else {
+		    	_f = sign * (double)i / base;
+		    }
+		}
+		return pos;
 	}
 
 	template<class char_t>
 	size_t ValueT<char_t>::read_nil(const char_t* in, size_t len, bool)
 	{
 		size_t pos = 0;
-		while(pos < len) {
-			switch(in[pos]) {
-				case 'n':
-					JSON_PARSE_CHECK(len - pos >= detail::nil_null_length());
-					if(! memcmp(in + pos, detail::nil_null<char_t>(), detail::nil_null_length() * sizeof(char_t))) {
-						clear();
-						return pos + detail::nil_null_length();
-					}
-					break;
-				case_white_space: break;
-				default: JSON_PARSE_CHECK(false);
-			}
-			++pos;
+		while(pos < len && is_ws(in[pos])) ++pos;
+		if(len - pos >= 4 && in[pos] == 'n' && in[pos + 1] == 'u' && in[pos + 2] == 'l' && in[pos + 3] == 'l') {
+			clear();
+			return pos + 4;
 		}
 		JSON_PARSE_CHECK(false);
 	}
@@ -1351,28 +1350,16 @@ GOTO_END:
 	size_t ValueT<char_t>::read_boolean(const char_t* in, size_t len, bool)
 	{
 		size_t pos = 0;
-		while(pos < len) {
-			switch(in[pos]) {
-				case 't':
-					JSON_PARSE_CHECK(len - pos >= detail::boolean_true_length());
-					if(!memcmp(in + pos, detail::boolean<true, char_t>(), detail::boolean_true_length() * sizeof(char_t))) {
-						clear(BOOLEAN);
-						_b = true;
-						return pos + detail::boolean_true_length();
-					}
-					break;
-				case 'f':
-					JSON_PARSE_CHECK(len - pos >= detail::boolean_false_length());
-					if(!memcmp(in + pos, detail::boolean<false, char_t>(), detail::boolean_false_length() * sizeof(char_t))) {
-						clear(BOOLEAN);
-						_b = false;
-						return pos + detail::boolean_false_length();
-					}
-					break;
-				case_white_space: break;
-				default: JSON_PARSE_CHECK(false);
-			}
-			++pos;
+		while(pos < len && is_ws(in[pos])) ++pos;
+		if(len - pos >= 4 && in[pos] == 't' && in[pos + 1] == 'r' && in[pos + 2] == 'u' && in[pos + 3] == 'e') {
+			clear(BOOLEAN);
+			_b = true;
+			return pos + 4;
+		}
+		else if(len - pos >= 5 && in[pos] == 'f' && in[pos + 1] == 'a' && in[pos + 2] == 'l' && in[pos + 3] == 's' && in[pos + 4] == 'e') {
+			clear(BOOLEAN);
+			_b = false;
+			return pos + 5;
 		}
 		JSON_PARSE_CHECK(false);
 	}
@@ -1396,18 +1383,17 @@ GOTO_END:
 	size_t ValueT<char_t>::read(const char_t* in, size_t len, bool dma/* = true*/)
 	{
 		// Indicate current parse state
-		enum {NONE = 0,
-			OBJECT_LBRACE,          /* { */
-			OBJECT_PAIR_KEY_QUOTE,  /* {"," */
-			OBJECT_PAIR_KEY,        /* "..." */
-			OBJECT_PAIR_COLON,      /* "...": */
-			OBJECT_PAIR_VALUE,      /* "...":"..." */
-			OBJECT_COMMA,           /* {..., */
-			ARRAY_LBRACKET,         /* [ */
-			ARRAY_ELEM,             /* [...[...,... */
-			ARRAY_COMMA             /* [..., */
+		enum {OBJECT_LBRACE,          /* { */
+			  OBJECT_PAIR_KEY_QUOTE,  /* {"," */
+			  OBJECT_PAIR_KEY,        /* "..." */
+			  OBJECT_PAIR_COLON,      /* "...": */
+			  OBJECT_PAIR_VALUE,      /* "...":"..." */
+			  OBJECT_COMMA,           /* {..., */
+			  ARRAY_LBRACKET,         /* [ */
+			  ARRAY_ELEM,             /* [...[...,... */
+			  ARRAY_COMMA             /* [..., */
 		};
-		unsigned char state = NONE;
+		unsigned char state = 0;
 		size_t pos = 0;
 		union {
 			size_t start;
@@ -1415,17 +1401,15 @@ GOTO_END:
 		} u;
 		memset(&u, 0, sizeof(u));
 		std::deque<ValueT<char_t>*> pv(1, this);
+		while(pos < len && is_ws(in[pos])) ++pos;
+		// Topmost value parse.
+		switch(in[pos++]) {
+			case '{': state = OBJECT_LBRACE;  clear(OBJECT); break;
+			case '[': state = ARRAY_LBRACKET; clear(ARRAY);  break;
+			default: JSON_PARSE_CHECK(false);
+		}
 		while(pos < len) {
 			switch(state) {
-				case NONE:
-					// Topmost value parse.
-					switch(in[pos]) {
-						case '{': state = OBJECT_LBRACE;  clear(OBJECT); break;
-						case '[': state = ARRAY_LBRACKET; clear(ARRAY);  break;
-						case_white_space:                                break;
-						default: JSON_PARSE_CHECK(false);
-					}
-					break;
 				case OBJECT_LBRACE:
 				case OBJECT_COMMA:
 					switch(in[pos]) {
@@ -1536,7 +1520,6 @@ GOTO_END:
 	}
 
 #undef case_white_space
-#undef case_number_1_9
 #undef case_number_0_9
 #undef case_number_ending
 #undef OBJECT_ARRAY_PARSE_END
