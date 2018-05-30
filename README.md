@@ -12,7 +12,7 @@
 - **Easy-to-use**: it's STL-based, and designed to be used without extra studies.
 - **Easy-to-assemble**: only a tiny header file needs to be included.
 - **No dependencies**: unless STL and std c libraries.
-- According to [**RFC 7159 - The JavaScript Object Notation (JSON) Data Interchange Format**](https://tools.ietf.org/html/rfc7159).
+- According to [**RFC 8259 - The JavaScript Object Notation (JSON) Data Interchange Format**](https://tools.ietf.org/html/rfc8259).
 - **Compatiblities**: 
   - **Encoding-friendly**: support popular encodings, like ASCII, UTF8, GBK, GB2312, BIG 5, UTF16, UTF32, UCS-2, UCS-4.
   - **OS-friendly**: portable for popular platforms, like linux and windows.
