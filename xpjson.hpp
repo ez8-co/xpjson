@@ -1316,20 +1316,26 @@ namespace JSON
 			_i = sign * i;
 		}
 		else {
-			register double base = 1.0;
-			static const double pow10[] = {10., 100., 1.0e4, 1.0e8, 1.0e16, 1.0e32, 1.0e64, 1.0e128, 1.0e256};
-		    for(const double* d = pow10; exp; exp >>= 1, ++d) {
-				if (exp & 1) {
-				    base *= *d;
-				}
-		    }
 			clear(FLOAT);
-		    if(expsign) {
-		    	_f = sign * (double)i * base;
-		    }
-		    else {
-		    	_f = sign * (double)i / base;
-		    }
+			if (exp > 0x1FF) {
+				errno = ERANGE;
+				_f = sign * HUGE_VAL;
+			}
+			else {
+				register double base = 1.0;
+				static const double pow10[] = {10., 100., 1.0e4, 1.0e8, 1.0e16, 1.0e32, 1.0e64, 1.0e128, 1.0e256};
+				for(const double* d = pow10; exp; exp >>= 1, ++d) {
+					if (exp & 1) {
+						base *= *d;
+					}
+				}
+				if(expsign) {
+					_f = sign * (double)i * base;
+				}
+				else {
+					_f = sign * (double)i / base;
+				}
+			}
 		}
 		return pos;
 	}
