@@ -1227,7 +1227,7 @@ namespace JSON
 		size_t pos = 0;
 		int sign = 1;
 		int dec = -1;
-		int64_t i = 0;
+		uint64_t i = 0;
 
 		while(pos < len && is_ws(in[pos])) ++pos;
 
@@ -1247,35 +1247,36 @@ namespace JSON
 				_i = 0;
 				return pos;
 			}
-			switch (in[pos]) {
-				case '.':
-					++dec;
-				case 'e':
-				case 'E':
-					++pos;
-				case_number_ending:
+		}
+		else {
+			while(in[pos] >= '0' && in[pos] <= '9') {
+				if(XPJSON_LIKELY(i < 1000000000000000000LL)) {
+					i = i * 10 + (in[pos] - '0');
+					if(XPJSON_UNLIKELY(dec >= 0))
+						++dec;
+				}
+				if(++pos >= len)
 					break;
-				default:
-					JSON_PARSE_CHECK(false);
+			}
+			JSON_PARSE_CHECK(i);
+		}
+
+		if(XPJSON_UNLIKELY(in[pos] == '.')) {
+			JSON_PARSE_CHECK(dec == -1);
+			++pos;
+			++dec;
+			while(in[pos] >= '0' && in[pos] <= '9') {
+				if(XPJSON_LIKELY(i < 1000000000000000000LL)) {
+					i = i * 10 + (in[pos] - '0');
+					if(XPJSON_UNLIKELY(dec >= 0))
+						++dec;
+				}
+				if(++pos >= len)
+					break;
 			}
 		}
 
-		while(in[pos] >= '0' && in[pos] <= '9') {
-			if(XPJSON_LIKELY(i < 1000000000000000000LL)) {
-				i = i * 10 + (in[pos] - '0');
-				if(XPJSON_UNLIKELY(dec >= 0))
-					++dec;
-			}
-			if(++pos >= len)
-				break;
-			if(XPJSON_UNLIKELY(in[pos] == '.')) {
-				JSON_PARSE_CHECK(dec == -1);
-				++pos;
-				++dec;
-			}
-		}
-
-		JSON_PARSE_CHECK(pos != (sign == -1 ? 1 : 0) && dec != 0);
+		JSON_PARSE_CHECK(pos != (sign == -1 ? 1 : 0) && dec);
 
 		register int exp = 0;
 		register bool expsign = true;
@@ -1295,7 +1296,9 @@ namespace JSON
 				exp = exp * 10 + (in[pos] - '0');
 				++pos;
 			}
-			exp -= expsign ? dec : -dec;
+			JSON_PARSE_CHECK(exp);
+			if (dec != -1)
+				exp -= expsign ? dec : -dec;
 		}
 		else {
 			expsign = false;
@@ -1311,7 +1314,7 @@ namespace JSON
 			}
 		}
 
-		if(dec == -1) {
+		if(dec == -1 && exp == -1) {
 			clear(INTEGER);
 			_i = sign * i;
 		}
@@ -1435,14 +1438,21 @@ namespace JSON
 				case OBJECT_PAIR_KEY_QUOTE:
 					switch(in[pos]) {
 						case '\\':
-							while(++pos < len) {
-								if(in[pos] == '\"' && in[pos - 1] != '\\') {
+							while(pos < len) {
+								if(in[pos] == '\"') {
 									state = OBJECT_PAIR_KEY;
 									JSON_TSTRING(char_t) key;
 									detail::decode(in + u.start, pos - u.start, key);
 									pv.push_back(&(*pv.back()->_o)[JSON_MOVE(key)]);
+									u.start = 0;
 									break;
 								}
+								else if(in[pos] == '\\') {
+									if(++pos >= len) {
+										break;
+									}
+								}
+								++pos;
 							}
 							JSON_PARSE_CHECK(state == OBJECT_PAIR_KEY);
 							break;

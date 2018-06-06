@@ -232,6 +232,11 @@ TEST(ut_xpjson, read)
 		ASSERT_TRUE(JSON::Reader::read(v, in.c_str(), in.length()) == in.length());
 		ASSERT_TRUE(v["aa\b"].s() == "b");
 
+		// case 11 escaped key
+		in = "{\"aa\\b\\\"\":\"b\"}";
+		ASSERT_TRUE(JSON::Reader::read(v, in.c_str(), in.length()) == in.length());
+		ASSERT_TRUE(v["aa\b\""].s() == "b");
+
 		// exception cases
 		// case 1 bracket not match
 		in = "{\"a\":\"b\"";
@@ -288,6 +293,10 @@ TEST(ut_xpjson, read)
 		in = "{\"a\":\"b\"a";
 		EXPECT_THROW(JSON::Reader::read(v, in.c_str(), in.length()), std::logic_error);
 		in = "[\"a\",\"b\"a";
+		EXPECT_THROW(JSON::Reader::read(v, in.c_str(), in.length()), std::logic_error);
+
+		// case 9 end with backslash in key
+		in = "{\"a\\";
 		EXPECT_THROW(JSON::Reader::read(v, in.c_str(), in.length()), std::logic_error);
 	}
 	catch(std::exception &e) {
@@ -1223,6 +1232,8 @@ TEST(ut_xpjson, read_number)
 		ASSERT_TRUE(v.f() == -123.1e2);
 		ASSERT_TRUE(v.read_number("-3.123e-2", 9) == 9);
 		ASSERT_TRUE(v.f() == -3.123e-2);
+		ASSERT_TRUE(v.read_number("-3e2", 4) == 4);
+		ASSERT_TRUE(v.f() == -3e2);
 
 		// case 5 whitespace characters
 		ASSERT_TRUE(v.read_number(" \r\n\t-3.123e-2", 13) == 13);
