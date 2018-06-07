@@ -1231,14 +1231,10 @@ namespace JSON
 
 		while(pos < len && is_ws(in[pos])) ++pos;
 
-		JSON_PARSE_CHECK(pos < len);
-
 		if(in[pos] == '-') {
 			sign = -1;
 			++pos;
 		}
-
-		JSON_PARSE_CHECK(pos < len);
 
 		if(in[pos] == '0') {
 			++pos;
@@ -1274,13 +1270,12 @@ namespace JSON
 				if(++pos >= len)
 					break;
 			}
+			JSON_PARSE_CHECK(dec);
 		}
-
-		JSON_PARSE_CHECK(pos != (sign == -1 ? 1 : 0) && dec);
 
 		register int exp = 0;
 		register bool expsign = true;
-		if(pos < len && (in[pos] | 0x20) == 'e') {
+		if((in[pos] | 0x20) == 'e') {
 			++pos;
 			JSON_PARSE_CHECK(pos < len);
 			if(in[pos] == '-') {
