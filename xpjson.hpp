@@ -81,11 +81,11 @@
 #endif
 
 #define JSON_ASSERT_CHECK(expression, exception_type, what)	\
-	if(!(expression)) {throw exception_type(what);}
+	if(XPJSON_UNLIKELY(!(expression))) {throw exception_type(what);}
 #define JSON_ASSERT_CHECK1(expression, fmt, arg1)		\
-	if(!(expression)) {char what[0x100] = {0}; sprintf(what, fmt"(line:%d)", arg1, __LINE__); throw std::logic_error(what);}
+	if(XPJSON_UNLIKELY(!(expression))) {char what[0x100] = {0}; sprintf(what, fmt"(line:%d)", arg1, __LINE__); throw std::logic_error(what);}
 #define JSON_ASSERT_CHECK2(expression, fmt, arg1, arg2)	\
-	if(!(expression)) {char what[0x100] = {0}; sprintf(what, fmt"(line:%d)", arg1, arg2, __LINE__); throw std::logic_error(what);}
+	if(XPJSON_UNLIKELY(!(expression))) {char what[0x100] = {0}; sprintf(what, fmt"(line:%d)", arg1, arg2, __LINE__); throw std::logic_error(what);}
 #define JSON_CHECK_TYPE(type, except) JSON_ASSERT_CHECK2(type == except, "Type error: except(%s), actual(%s).", get_type_name(except), get_type_name(type))
 #define JSON_PARSE_CHECK(expression)  JSON_ASSERT_CHECK2(expression, "Parse error: in=%.50s pos=%zu.", detail::get_cstr(in, len).c_str (), pos)
 #define JSON_DECODE_CHECK(expression) JSON_ASSERT_CHECK1(expression, "Decode error: in=%.50s.", detail::get_cstr(in, len).c_str ())
@@ -154,8 +154,8 @@ namespace JSON
 		// end of type traits
 
 		template<class char_t> JSON_TSTRING(char) get_cstr(const char_t* str, size_t len);
-		template<> JSON_TSTRING(char) get_cstr<char>(const char* str, size_t len) {return JSON_MOVE(JSON_TSTRING(char)(str, len));}
-		template<> JSON_TSTRING(char) get_cstr<wchar_t>(const wchar_t* str, size_t len)
+		template<> inline JSON_TSTRING(char) get_cstr<char>(const char* str, size_t len) {return JSON_MOVE(JSON_TSTRING(char)(str, len));}
+		template<> inline JSON_TSTRING(char) get_cstr<wchar_t>(const wchar_t* str, size_t len)
 		{
 			JSON_TSTRING(char) out;
 			out.resize(len * sizeof(wchar_t));
@@ -166,8 +166,8 @@ namespace JSON
 		}
 
 		template<class char_t> size_t tcslen(const char_t* str);
-		template<> size_t tcslen<char>(const char* str) {return strlen(str);}
-		template<> size_t tcslen<wchar_t>(const wchar_t* str) {return wcslen(str);}
+		template<> inline size_t tcslen<char>(const char* str) {return strlen(str);}
+		template<> inline size_t tcslen<wchar_t>(const wchar_t* str) {return wcslen(str);}
 
 		template<class T, class char_t>
 		inline void internal_to_string(const T& v, JSON_TSTRING(char_t)& out, int(*fmter)(char_t*,size_t,const char_t*,...), const char_t* fmt)
@@ -193,17 +193,9 @@ template<> inline void to_string<type, char_t>(type v, JSON_TSTRING(char_t)& out
 		JSON_TO_STRING(double,  wchar_t, swprintf, L"%.16g")
 #undef JSON_TO_STRING
 
-		template<>
-		inline void to_string<const char*, char>(const char* v, JSON_TSTRING(char)& out)
-		{
-			out += v;
-		}
+		template<> inline void to_string<const char*, char>(const char* v, JSON_TSTRING(char)& out) { out += v; }
 
-		template<>
-		inline void to_string<const char*, wchar_t>(const char* v, JSON_TSTRING(wchar_t)& out)
-		{
-			while(*v) out += (wchar_t)*v++;
-		}
+		template<> inline void to_string<const char*, wchar_t>(const char* v, JSON_TSTRING(wchar_t)& out) { while(*v) out += (wchar_t)*v++; }
 
 		template<class T, class char_t>
 		inline JSON_TSTRING(char_t) to_string(const T& v)
@@ -213,24 +205,24 @@ template<> inline void to_string<type, char_t>(type v, JSON_TSTRING(char_t)& out
 			return JSON_MOVE(JSON_TSTRING(char_t)(out));
 		}
 
-		char int_to_hex(int n) {return n["0123456789abcdef"];}
+		inline char int_to_hex(int n) {return n["0123456789abcdef"];}
 
 		template<class char_t>
-		void to_hex(int ch, JSON_TSTRING(char_t)& out)
+		inline void to_hex(int ch, JSON_TSTRING(char_t)& out)
 		{
 			out += int_to_hex((ch >> 4) & 0xF);
 			out += int_to_hex(ch & 0xF);
 		}
 
 		template<int size, class char_t> void encode_unicode(char_t ch, JSON_TSTRING(char_t)& out);
-		template<> void encode_unicode<1, char>(char ch, JSON_TSTRING(char)& out)
+		template<> inline void encode_unicode<1, char>(char ch, JSON_TSTRING(char)& out)
 		{
 			out += '\\'; out += 'u'; out += '0'; out += '0';
 			to_hex(ch, out);
 		}
 
 		// For UTF16 Encoding
-		template<> void encode_unicode<2, wchar_t>(wchar_t ch, JSON_TSTRING(wchar_t)& out)
+		template<> inline void encode_unicode<2, wchar_t>(wchar_t ch, JSON_TSTRING(wchar_t)& out)
 		{
 			out += '\\'; out += 'u';
 			to_hex((ch >> 8) & 0xFF, out);
@@ -238,7 +230,7 @@ template<> inline void to_string<type, char_t>(type v, JSON_TSTRING(char_t)& out
 		}
 
 		// For UTF32 Encoding
-		template<> void encode_unicode<4, wchar_t>(wchar_t ch, JSON_TSTRING(wchar_t)& out)
+		template<> inline void encode_unicode<4, wchar_t>(wchar_t ch, JSON_TSTRING(wchar_t)& out)
 		{
 			if(ch > 0xFFFF) {
 				ch = static_cast<int>(ch) - 0x10000;
@@ -248,7 +240,7 @@ template<> inline void to_string<type, char_t>(type v, JSON_TSTRING(char_t)& out
 			else encode_unicode<2, wchar_t>(static_cast<unsigned short>(ch), out);
 		}
 
-		void encode(const char* in, size_t len, JSON_TSTRING(char)& out)
+		inline void encode(const char* in, size_t len, JSON_TSTRING(char)& out)
 		{
 			while(len--) {
 				switch(*in) {
@@ -269,7 +261,7 @@ template<> inline void to_string<type, char_t>(type v, JSON_TSTRING(char_t)& out
 			}
 		}
 
-		void encode(const wchar_t* in, size_t len, JSON_TSTRING(wchar_t)& out)
+		inline void encode(const wchar_t* in, size_t len, JSON_TSTRING(wchar_t)& out)
 		{
 			while(len--) {
 				if(*in > 0x7F) encode_unicode<sizeof(wchar_t), wchar_t>(*in, out);
@@ -293,7 +285,7 @@ template<> inline void to_string<type, char_t>(type v, JSON_TSTRING(char_t)& out
 			}
 		}
 
-		int hex_to_int(int ch)
+		inline int hex_to_int(int ch)
 		{
 			if('0' <= ch && ch <= '9') return (ch - '0');
 			else if('a' <= ch && ch <= 'f') return (ch - 'a' + 10);
@@ -302,7 +294,7 @@ template<> inline void to_string<type, char_t>(type v, JSON_TSTRING(char_t)& out
 		}
 
 		template<class char_t>
-		unsigned short hex_to_ushort(const char_t* in, size_t len)
+		inline unsigned short hex_to_ushort(const char_t* in, size_t len)
 		{
 			JSON_DECODE_CHECK(len >= 4);
 			unsigned char highByte = (hex_to_int(in[0]) << 4) | hex_to_int(in[1]);
@@ -311,8 +303,8 @@ template<> inline void to_string<type, char_t>(type v, JSON_TSTRING(char_t)& out
 		}
 
 		template<class char_t> void decode_unicode_append(unsigned int ui, JSON_TSTRING(char_t)& out);
-		template<> void decode_unicode_append<wchar_t>(unsigned int ui, JSON_TSTRING(wchar_t)& out) {out += ui;}
-		template<> void decode_unicode_append<char>(unsigned int ui, JSON_TSTRING(char)& out)
+		template<> inline void decode_unicode_append<wchar_t>(unsigned int ui, JSON_TSTRING(wchar_t)& out) {out += ui;}
+		template<> inline void decode_unicode_append<char>(unsigned int ui, JSON_TSTRING(char)& out)
 		{
 			const size_t len = out.length();
 			if(ui <= 0x0000007F) {
@@ -357,7 +349,7 @@ template<> inline void to_string<type, char_t>(type v, JSON_TSTRING(char_t)& out
 		}
 
 		template<class char_t>
-		size_t decode_unicode(const char_t* in, size_t len, JSON_TSTRING(char_t)& out)
+		inline size_t decode_unicode(const char_t* in, size_t len, JSON_TSTRING(char_t)& out)
 		{
 			unsigned int ui = hex_to_ushort(in, len);
 			if(ui >= 0xD800 && ui < 0xDC00) {
@@ -372,7 +364,7 @@ template<> inline void to_string<type, char_t>(type v, JSON_TSTRING(char_t)& out
 		}
 
 		template<class char_t>
-		void decode(const char_t* in, size_t len, JSON_TSTRING(char_t)& out)
+		inline void decode(const char_t* in, size_t len, JSON_TSTRING(char_t)& out)
 		{
 			for(size_t pos = 0; pos < len; ++pos) {
 				switch(in[pos]) {
@@ -779,8 +771,6 @@ template<> inline void to_string<type, char_t>(type v, JSON_TSTRING(char_t)& out
 				return _s->length();
 		}
 
-	protected:
-
 		/**
 			Read types from stream.
 			Return char_t count(offset) parsed.
@@ -792,6 +782,7 @@ template<> inline void to_string<type, char_t>(type v, JSON_TSTRING(char_t)& out
 		/* NOTE: MUST with quotes.*/
 		size_t read_string(const char_t* in, size_t len, bool dma = true);
 
+	protected:
 		unsigned char _type       : 3;
 		mutable bool _sso         : 1; // small string optimization
 		union {
@@ -1190,12 +1181,12 @@ namespace JSON
 	template<class char_t>
 	size_t ValueT<char_t>::read_string(const char_t* in, size_t len, bool dma)
 	{
-		bool e = false;
-		size_t pos = 0;
+		register bool e = false;
+		register size_t pos = 0;
 
 		while(pos < len && is_ws(in[pos])) ++pos;
 		JSON_PARSE_CHECK(pos < len && in[pos] == '\"');
-		size_t start = ++pos;
+		register size_t start = ++pos;
 		while(pos < len) {
 			if(XPJSON_UNLIKELY(in[pos] == '\"')) {
 				_e = e;
@@ -1224,83 +1215,98 @@ namespace JSON
 	template<class char_t>
 	size_t ValueT<char_t>::read_number(const char_t* in, size_t len, bool)
 	{
-		size_t pos = 0;
-		int sign = 1;
-		int dec = -1;
-		uint64_t i = 0;
+		register size_t pos = 0;
+		register bool neg = false;
+		register int sigfand = 0;
+		register bool dec_overflow = false;
+		register int dec = -1;
+		register uint64_t i = 0;
 
 		while(pos < len && is_ws(in[pos])) ++pos;
 
 		if(in[pos] == '-') {
-			sign = -1;
+			neg = true;
 			++pos;
 		}
 
-		if(in[pos] == '0') {
-			++pos;
-			if(pos >= len) {
+		if(XPJSON_UNLIKELY(in[pos] == '0')) {
+			if(++pos >= len) {
 				clear(INTEGER);
 				_i = 0;
 				return pos;
 			}
 		}
 		else {
-			while(in[pos] >= '0' && in[pos] <= '9') {
-				if(XPJSON_LIKELY(i < 1000000000000000000LL)) {
+			while(unsigned(in[pos] - '0') < 10) {
+				if(XPJSON_LIKELY(!dec_overflow && i <= 922337203685477580ULL)) {
 					i = i * 10 + (in[pos] - '0');
-					if(XPJSON_UNLIKELY(dec >= 0))
-						++dec;
+					if(XPJSON_UNLIKELY(sigfand == 18 && i > 9223372036854775808ULL - !neg)) dec_overflow = true;
 				}
-				if(++pos >= len)
-					break;
+				else {
+					dec_overflow = true;
+				}
+				++sigfand;
+				if(XPJSON_UNLIKELY(++pos >= len)) break;
 			}
 			JSON_PARSE_CHECK(i);
 		}
 
+		if(XPJSON_UNLIKELY(dec_overflow)) {
+			sigfand -= 19 - (i < 1000000000000000000ULL);
+		}
+
 		if(XPJSON_UNLIKELY(in[pos] == '.')) {
-			JSON_PARSE_CHECK(dec == -1);
+			JSON_PARSE_CHECK(dec++ == -1);
 			++pos;
-			++dec;
-			while(in[pos] >= '0' && in[pos] <= '9') {
-				if(XPJSON_LIKELY(i < 1000000000000000000LL)) {
-					i = i * 10 + (in[pos] - '0');
-					if(XPJSON_UNLIKELY(dec >= 0))
+			if(XPJSON_LIKELY(i <= 922337203685477580ULL)) {
+				while(unsigned(in[pos] - '0') < 10) {
+					if(XPJSON_LIKELY(i <= 922337203685477580ULL)) {
+						i = i * 10 + (in[pos] - '0');
 						++dec;
+					}
+					else break;
+					if(XPJSON_UNLIKELY(++pos >= len)) break;
 				}
-				if(++pos >= len)
-					break;
+				JSON_PARSE_CHECK(dec);
 			}
-			JSON_PARSE_CHECK(dec);
+			while(unsigned(in[pos] - '0') < 10 && ++pos < len);
 		}
 
 		register int exp = 0;
-		register bool expsign = true;
+		register bool exp_neg = false;
 		if((in[pos] | 0x20) == 'e') {
-			++pos;
-			JSON_PARSE_CHECK(pos < len);
+			JSON_PARSE_CHECK(++pos < len);
 			if(in[pos] == '-') {
-				expsign = false;
+				exp_neg = true;
 				++pos;
-				JSON_PARSE_CHECK(pos < len);
 			}
 			else if(in[pos] == '+') {
 				++pos;
-				JSON_PARSE_CHECK(pos < len);
 			}
-			while(in[pos] >= '0' && in[pos] <= '9') {
-				exp = exp * 10 + (in[pos] - '0');
-				++pos;
+			JSON_PARSE_CHECK(pos < len && unsigned(in[pos] - '0') < 10);
+			while(unsigned(in[pos] - '0') < 10) {
+				exp = exp * 10 + (in[pos++] - '0');
 			}
-			JSON_PARSE_CHECK(exp);
-			if (dec != -1)
-				exp -= expsign ? dec : -dec;
+			if(XPJSON_UNLIKELY(dec_overflow)) {
+				if(exp_neg) {
+					exp = sigfand - exp;
+					if(exp < 0)
+						exp = -exp;
+					else
+						exp_neg = false;
+				}
+				else
+					exp += sigfand;
+			}
+			else if(dec != -1)
+				exp -= (exp_neg ? -dec : dec);
 		}
 		else {
-			expsign = false;
-			exp = dec;
+			exp_neg = !dec_overflow;
+			exp = XPJSON_UNLIKELY(dec_overflow) ? sigfand : dec;
 		}
 
-		if(pos < len) {
+		if(XPJSON_UNLIKELY(pos < len)) {
 			switch (in[pos]) {
 				case_number_ending:
 					break;
@@ -1311,28 +1317,22 @@ namespace JSON
 
 		if(dec == -1 && exp == -1) {
 			clear(INTEGER);
-			_i = sign * i;
+			_i = (neg ? -i : i);
 		}
 		else {
 			clear(FLOAT);
-			if (exp > 0x1FF) {
+			if (XPJSON_UNLIKELY(exp > 0x1FF)) {
 				errno = ERANGE;
-				_f = sign * HUGE_VAL;
+				_f = 0;
 			}
 			else {
 				register double base = 1.0;
 				static const double pow10[] = {10., 100., 1.0e4, 1.0e8, 1.0e16, 1.0e32, 1.0e64, 1.0e128, 1.0e256};
-				for(const double* d = pow10; exp; exp >>= 1, ++d) {
-					if (exp & 1) {
-						base *= *d;
-					}
+				for(int x = 0; exp && x < 9; exp >>= 1, ++x) {
+					if(exp & 1) base *= pow10[x];
 				}
-				if(expsign) {
-					_f = sign * (double)i * base;
-				}
-				else {
-					_f = sign * (double)i / base;
-				}
+				_f = (exp_neg ? (double)i / base : (double)i * base);
+				if(neg) _f = -_f;
 			}
 		}
 		return pos;
@@ -1341,7 +1341,7 @@ namespace JSON
 	template<class char_t>
 	size_t ValueT<char_t>::read_nil(const char_t* in, size_t len, bool)
 	{
-		size_t pos = 0;
+		register size_t pos = 0;
 		while(pos < len && is_ws(in[pos])) ++pos;
 		if(len - pos >= 4 && in[pos] == 'n' && in[pos + 1] == 'u' && in[pos + 2] == 'l' && in[pos + 3] == 'l') {
 			clear();
@@ -1353,7 +1353,7 @@ namespace JSON
 	template<class char_t>
 	size_t ValueT<char_t>::read_boolean(const char_t* in, size_t len, bool)
 	{
-		size_t pos = 0;
+		register size_t pos = 0;
 		while(pos < len && is_ws(in[pos])) ++pos;
 		if(len - pos >= 4 && in[pos] == 't' && in[pos + 1] == 'r' && in[pos + 2] == 'u' && in[pos + 3] == 'e') {
 			clear(BOOLEAN);
@@ -1397,8 +1397,8 @@ namespace JSON
 			  ARRAY_ELEM,             /* [...[...,... */
 			  ARRAY_COMMA             /* [..., */
 		};
-		unsigned char state = 0;
-		size_t pos = 0;
+		register unsigned char state = 0;
+		register size_t pos = 0;
 		union {
 			size_t start;
 			size_t(ValueT<char_t>::*fp)(const char_t*, size_t, bool);
