@@ -1240,7 +1240,7 @@ namespace JSON
 			while(unsigned(in[pos] - '0') < 10) {
 				if(XPJSON_LIKELY(!dec_overflow && i <= 922337203685477580ULL)) {
 					i = i * 10 + (in[pos] - '0');
-					if(XPJSON_UNLIKELY(sigfand == 18 && i > 9223372036854775808ULL - !neg)) dec_overflow = true;
+					if(XPJSON_UNLIKELY(sigfand == 18 && i > 9223372036854775807ULL + neg)) dec_overflow = true;
 				}
 				else {
 					dec_overflow = true;
