@@ -6,9 +6,6 @@
 
   Please see LICENSE file or visit https://github.com/ez8-co/xpjson for details.
  */
-#ifndef __XPJSON_HPP__
-#define __XPJSON_HPP__
-
 #pragma once
 
 #include <cstdio>
@@ -1600,5 +1597,3 @@ namespace JSON
 		return true;
 	}
 }
-
-#endif // __XPJSON_HPP__
