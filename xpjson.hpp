@@ -503,11 +503,11 @@ template<> inline void to_string<type, char_t>(type v, JSON_TSTRING(char_t)& out
 		inline typename detail::json_enable_if<detail::json_is_floating_point<T>::value>::type
 		assign(T f) {clear(FLOAT); _f = f;}
 		/** Assign function from pointer to char(C-string).  */
-		inline void assign(const char_t* s, int escape = AUTO_DETECT, bool dma = true) {assign(s, detail::tcslen(s), escape, dma);}
+		inline void assign(const char_t* s, int escape = AUTO_DETECT, bool dma = false) {assign(s, detail::tcslen(s), escape, dma);}
 		/** Assign function from pointer to char(C-string).  */
-		inline void assign(const char_t* s, size_t l, int escape = AUTO_DETECT, bool dma = true);
+		inline void assign(const char_t* s, size_t l, int escape = AUTO_DETECT, bool dma = false);
 		/** Assign function from STD string  */
-		inline void assign(const tstring& s, int escape = AUTO_DETECT, bool dma = true) {assign(s.data(), s.size(), escape, dma);}
+		inline void assign(const tstring& s, int escape = AUTO_DETECT, bool dma = false) {assign(s.data(), s.size(), escape, dma);}
 		/** Assign function from pointer to Object. */
 		inline void assign(const ObjectT<char_t>& o) {clear(OBJECT); *_o = o;}
 		/** Assign function from pointer to Array. */
