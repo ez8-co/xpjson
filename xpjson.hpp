@@ -589,6 +589,10 @@ template<> inline void to_string<type, char_t>(type v, JSON_TSTRING(char_t)& out
 		inline operator tstring() const
 		{
 			JSON_CHECK_TYPE(_type, STRING);
+			if(_sso || _dma){
+				_s = new tstring(c_str(), length());
+				_sso = _dma = false;
+			}
 			return *_s;
 		}
 		/** Cast operator for Object */
