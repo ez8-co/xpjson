@@ -1135,7 +1135,7 @@ namespace JSON
 	template<class char_t> template<class T>
 	T JSON::ValueT<char_t>::get(const tstring& key, const T& default_value) const
 	{
-		JSON_CHECK_TYPE(_type, OBJECT);
+		if(_type != OBJECT) return T(default_value);
 		typename ObjectT<char_t>::const_iterator it = _o->find(key);
 		if(it != _o->end()) return JSON_MOVE((detail::internal_type_casting <char_t, T>(it->second, default_value)));
 		return T(default_value);

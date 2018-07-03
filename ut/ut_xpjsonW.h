@@ -890,6 +890,20 @@ TEST(ut_xpjsonW, get)
 		ASSERT_TRUE(s == L"test");
 		s = v[L"string_not_exist"].get<wstring>(s_tmp);
 		ASSERT_TRUE(s == s_tmp);
+
+		JSON::ValueW ev;
+		const JSON::ValueW& ecv = ev;
+		i = ecv.get<int>(L"integer_not_exist", 10);
+		ASSERT_TRUE(i == 10);
+
+		f = ecv.get<float>(L"float_not_exist", 10);
+		ASSERT_TRUE(fabs(f - 10) < 1E-6);
+
+		b = ecv.get(L"boolean_not_exist", false);
+		ASSERT_TRUE(b == false);
+
+		s = ecv.get(L"string_not_exist", s_tmp);
+		ASSERT_TRUE(s == s_tmp);
 	}
 	catch(std::exception &e) {
 		printf("Error : %s.", e.what());
