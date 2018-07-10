@@ -166,6 +166,10 @@ namespace JSON
 		template<> inline size_t tcslen<char>(const char* str) {return strlen(str);}
 		template<> inline size_t tcslen<wchar_t>(const wchar_t* str) {return wcslen(str);}
 
+		template<class char_t> int tcsncmp(const char_t* t, const char_t* s, size_t n);
+		template<> inline int tcsncmp<char>(const char* t, const char* s, size_t n) {return strncmp(t, s, n);}
+		template<> inline int tcsncmp<wchar_t>(const wchar_t* t, const wchar_t* s, size_t n) {return wcsncmp(t, s, n);}
+
 		template<class T, class char_t>
 		inline void internal_to_string(const T& v, JSON_TSTRING(char_t)& out, int(*fmter)(char_t*,size_t,const char_t*,...), const char_t* fmt)
 		{
@@ -842,6 +846,7 @@ template<> inline void to_string<type, char_t>(type v, JSON_TSTRING(char_t)& out
 	template<class char_t> inline bool operator!=(const ValueT<char_t>& lhs, const ValueT<char_t>& rhs) {return !operator==(lhs, rhs);}
 
 	template<class char_t> inline bool operator==(const ValueT<char_t>& v, bool b) {return v.type() == BOOLEAN && b == v.b();}
+	template<class char_t> inline bool operator==(const ValueT<char_t>& v, const char_t* s) {return v.type() == STRING && detail::tcslen(s) == v.length() && !detail::tcsncmp(s, v.c_str(), v.length());}
 	template<class char_t, class T> inline typename detail::json_enable_if<detail::json_is_integral<T>::value, bool>::type
 	operator==(const ValueT<char_t>& v, T i) {return v.type() == INTEGER && i == v.i();}
 	template<class char_t, class T> inline typename detail::json_enable_if<detail::json_is_floating_point<T>::value, bool>::type
@@ -851,6 +856,7 @@ template<> inline void to_string<type, char_t>(type v, JSON_TSTRING(char_t)& out
 	template<class char_t> inline bool operator==(const ValueT<char_t>& v, const ArrayT<char_t>& a) {return v.type() == ARRAY && a == v.a();}
 
 	template<class char_t> inline bool operator==(bool b, const ValueT<char_t>& v) {return operator==(v, b);}
+	template<class char_t> inline bool operator==(const char_t* s, const ValueT<char_t>& v) {return operator==(v, s);}
 	template<class char_t, class T> inline typename detail::json_enable_if<detail::json_is_integral<T>::value, bool>::type
 	operator==(T i, const ValueT<char_t>& v) {return operator==(v, i);}
 	template<class char_t, class T> inline typename detail::json_enable_if<detail::json_is_floating_point<T>::value, bool>::type
@@ -860,6 +866,7 @@ template<> inline void to_string<type, char_t>(type v, JSON_TSTRING(char_t)& out
 	template<class char_t> inline bool operator==(const ArrayT<char_t>& a, const ValueT<char_t>& v) {return operator==(v, a);}
 
 	template<class char_t> inline bool operator!=(const ValueT<char_t>& v, bool b) {return !operator==(v, b);}
+	template<class char_t> inline bool operator!=(const ValueT<char_t>& v, const char_t* s) {return !operator==(v, s);}
 	template<class char_t, class T> inline typename detail::json_enable_if<detail::json_is_integral<T>::value, bool>::type
 	operator!=(const ValueT<char_t>& v, T i) {return !operator==(v, i);}
 	template<class char_t, class T> inline typename detail::json_enable_if<detail::json_is_floating_point<T>::value, bool>::type
@@ -869,6 +876,7 @@ template<> inline void to_string<type, char_t>(type v, JSON_TSTRING(char_t)& out
 	template<class char_t> inline bool operator!=(const ValueT<char_t>& v, const ArrayT<char_t>& a) {return !operator==(v, a);}
 
 	template<class char_t> inline bool operator!=(bool b, const ValueT<char_t>& v) {return !operator==(v, b);}
+	template<class char_t> inline bool operator!=(const char_t* s, const ValueT<char_t>& v) {return !operator==(v, s);}
 	template<class char_t, class T> inline typename detail::json_enable_if<detail::json_is_integral<T>::value, bool>::type
 	operator!=(T i, const ValueT<char_t>& v) {return !operator==(v, i);}
 	template<class char_t, class T> inline typename detail::json_enable_if<detail::json_is_floating_point<T>::value, bool>::type

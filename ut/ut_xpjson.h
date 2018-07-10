@@ -717,6 +717,13 @@ TEST(ut_xpjson, compare_function)
 		ASSERT_TRUE(str1 != str_v);
 		ASSERT_TRUE(str_v != JSON::Value(str1));
 
+		ASSERT_TRUE(str_v == "test");
+		ASSERT_TRUE("test" == str_v);
+		ASSERT_TRUE(str_v == JSON::Value(str));
+		ASSERT_TRUE(str_v != "test1");
+		ASSERT_TRUE("test1" != str_v);
+		ASSERT_TRUE(str_v != JSON::Value(str1));
+
 		/* array */
 		// type
 		ASSERT_FALSE(nil == arr_v);

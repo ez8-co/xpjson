@@ -716,6 +716,13 @@ TEST(ut_xpjsonW, compare_function)
 		ASSERT_TRUE(str1 != str_v);
 		ASSERT_TRUE(str_v != JSON::ValueW(str1));
 
+		ASSERT_TRUE(str_v == L"test");
+		ASSERT_TRUE(L"test" == str_v);
+		ASSERT_TRUE(str_v == JSON::ValueW(str));
+		ASSERT_TRUE(str_v != L"test1");
+		ASSERT_TRUE(L"test1" != str_v);
+		ASSERT_TRUE(str_v != JSON::ValueW(str1));
+
 		/* array */
 		// type
 		ASSERT_FALSE(nil == arr_v);
