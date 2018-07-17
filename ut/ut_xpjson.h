@@ -305,6 +305,26 @@ TEST(ut_xpjson, read)
 	}
 }
 
+TEST(ut_xpjson, read_write)
+{
+	try {
+		string in("[null,2147483647,68719476735,1.3e-12,true,false,\"test\\\"\\\\\\/\\b\\f\\n\\r\\t\",\"test\"]");
+		JSON::Value v;
+		{
+			JSON::Reader::read(v, in.c_str(), in.length());
+			ASSERT_TRUE(v.type() == JSON::ARRAY);
+
+			string out;
+			v.write(out);
+			ASSERT_EQ(in, out);
+		}
+	}
+	catch(std::exception &e) {
+		printf("Error : %s.", e.what());
+		ASSERT_TRUE(false);
+	}
+}
+
 TEST(ut_xpjson, ctor)
 {
 	try {

@@ -1198,7 +1198,6 @@ namespace JSON
 		register size_t start = ++pos;
 		while(pos < len) {
 			if(XPJSON_UNLIKELY(in[pos] == '\"')) {
-				_e = e;
 				if(e) {
 					clear(STRING);
 					if(_sso || _dma) {
@@ -1206,6 +1205,7 @@ namespace JSON
 						_s = new tstring;
 					}
 					detail::decode(in + start, pos - start, *_s);
+					_e = e;
 				}
 				else {
 					assign(in + start, pos - start, e, dma);
