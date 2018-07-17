@@ -1101,17 +1101,15 @@ namespace JSON
 					case BOOLEAN: return T(v.b());
 					case INTEGER: return T(v.i());
 					case FLOAT:   return T(v.f());
-					case STRING:
-						if(v.length() == 4 && v.c_str()[0] == 't' && v.c_str()[1] == 'r' && v.c_str()[2] == 'u' && v.c_str()[3] == 'e')
-							return T(1);
-						else if(v.length() == 5 && v.c_str()[0] == 'f' && v.c_str()[1] == 'a' && v.c_str()[2] == 'l' && v.c_str()[3] == 's' && v.c_str()[4] == 'e')
-							return T(0);
-						else {
+					case STRING: {
+							if(v.length() == 4 && v.c_str()[0] == 't' && v.c_str()[1] == 'r' && v.c_str()[2] == 'u' && v.c_str()[3] == 'e')
+								return T(1);
+							else if(v.length() == 5 && v.c_str()[0] == 'f' && v.c_str()[1] == 'a' && v.c_str()[2] == 'l' && v.c_str()[3] == 's' && v.c_str()[4] == 'e')
+								return T(0);
 							JSON::ValueT<char_t> vd;
 							vd.read_number(v.c_str(), v.length(), false);
 							return vd.template get<T>(value);
 						}
-						JSON_ASSERT_CHECK1(false, "Type-casting error: (%s) to arithmetic.", detail::get_cstr(v.c_str(), v.length()).c_str());
 					default: JSON_ASSERT_CHECK1(false, "Type-casting error: from (%s) type to arithmetic.", get_type_name(v.type()));
 				}
 				return T(value);
