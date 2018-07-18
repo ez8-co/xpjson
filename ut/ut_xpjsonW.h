@@ -307,7 +307,7 @@ TEST(ut_xpjsonW, read)
 TEST(ut_xpjsonW, read_write)
 {
 	try {
-		wstring in(L"[null,2147483647,68719476735,1.3e-12,true,false,\"test\\\"\\\\\\/\\b\\f\\n\\r\\t\",\"test\"]");
+		wstring in(L"[\"test\\\"\\\\\\/\\b\\f\\n\\r\\t\",\"test\"]");
 		JSON::ValueW v;
 		{
 			JSON::ReaderW::read(v, in.c_str(), in.length());
