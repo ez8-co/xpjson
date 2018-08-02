@@ -1106,9 +1106,14 @@ namespace JSON
 								return T(1);
 							else if(v.length() == 5 && v.c_str()[0] == 'f' && v.c_str()[1] == 'a' && v.c_str()[2] == 'l' && v.c_str()[3] == 's' && v.c_str()[4] == 'e')
 								return T(0);
-							JSON::ValueT<char_t> vd;
-							vd.read_number(v.c_str(), v.length(), false);
-							return vd.template get<T>(value);
+							try {
+								JSON::ValueT<char_t> vd;
+								vd.read_number(v.c_str(), v.length(), false);
+								return vd.template get<T>(value);
+							}
+							catch(std::exception& e) {
+								return T(value);
+							}
 						}
 					default: JSON_ASSERT_CHECK1(false, "Type-casting error: from (%s) type to arithmetic.", get_type_name(v.type()));
 				}
@@ -1281,7 +1286,7 @@ namespace JSON
 
 		register int exp = 0;
 		register bool exp_neg = false;
-		if((in[pos] | 0x20) == 'e') {
+		if(pos < len && (in[pos] | 0x20) == 'e') {
 			JSON_PARSE_CHECK(++pos < len);
 			if(in[pos] == '-') {
 				exp_neg = true;

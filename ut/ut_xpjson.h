@@ -955,6 +955,7 @@ TEST(ut_xpjson, get_with_casting)
 		v["s_b_f"] = "false";
 		v["s_b_f_1"] = "0";
 		v["s_b_f_2"] = "0.0";
+		v["s_b_f_3"] = "unknown";
 
 		// 1. cast to integer
 		ASSERT_TRUE(v.get<char>("i", 0) == 1);
@@ -964,6 +965,8 @@ TEST(ut_xpjson, get_with_casting)
 		ASSERT_TRUE(v.get<char>("s_f", 0) == 1);
 		ASSERT_TRUE(v.get<char>("s_b_t", 0) == 1);
 		ASSERT_TRUE(v.get<char>("s_b_f", 1) == 0);
+		ASSERT_TRUE(v.get<char>("s_b_f_3", 0) == 0);
+		ASSERT_TRUE(v.get<char>("s_b_f_3", 1) == 1);
 
 		ASSERT_TRUE(v["i"].get<char>(0) == 1);
 		ASSERT_TRUE(v["f"].get<char>(1) == 0);
@@ -972,6 +975,8 @@ TEST(ut_xpjson, get_with_casting)
 		ASSERT_TRUE(v["s_f"].get<char>(0) == 1);
 		ASSERT_TRUE(v["s_b_t"].get<char>(0) == 1);
 		ASSERT_TRUE(v["s_b_f"].get<char>(1) == 0);
+		ASSERT_TRUE(v["s_b_f_3"].get<char>(0) == 0);
+		ASSERT_TRUE(v["s_b_f_3"].get<char>(1) == 1);
 
 		ASSERT_TRUE(v.get<short>("i", 0) == 1);
 		ASSERT_TRUE(v.get<short>("f", 1) == 0);
@@ -980,6 +985,8 @@ TEST(ut_xpjson, get_with_casting)
 		ASSERT_TRUE(v.get<short>("s_f", 0) == 1);
 		ASSERT_TRUE(v.get<short>("s_b_t", 0) == 1);
 		ASSERT_TRUE(v.get<short>("s_b_f", 1) == 0);
+		ASSERT_TRUE(v.get<short>("s_b_f_3", 0) == 0);
+		ASSERT_TRUE(v.get<short>("s_b_f_3", 1) == 1);
 
 		ASSERT_TRUE(v["i"].get<short>(0) == 1);
 		ASSERT_TRUE(v["f"].get<short>(1) == 0);
@@ -988,6 +995,8 @@ TEST(ut_xpjson, get_with_casting)
 		ASSERT_TRUE(v["s_f"].get<short>(0) == 1);
 		ASSERT_TRUE(v["s_b_t"].get<short>(0) == 1);
 		ASSERT_TRUE(v["s_b_f"].get<short>(1) == 0);
+		ASSERT_TRUE(v["s_b_f_3"].get<short>(0) == 0);
+		ASSERT_TRUE(v["s_b_f_3"].get<short>(1) == 1);
 
 		ASSERT_TRUE(v.get<int>("i", 0) == 1);
 		ASSERT_TRUE(v.get<int>("f", 1) == 0);
@@ -996,6 +1005,8 @@ TEST(ut_xpjson, get_with_casting)
 		ASSERT_TRUE(v.get<int>("s_f", 0) == 1);
 		ASSERT_TRUE(v.get<int>("s_b_t", 0) == 1);
 		ASSERT_TRUE(v.get<int>("s_b_f", 1) == 0);
+		ASSERT_TRUE(v.get<int>("s_b_f_3", 0) == 0);
+		ASSERT_TRUE(v.get<int>("s_b_f_3", 1) == 1);
 
 		ASSERT_TRUE(v["i"].get<int>(0) == 1);
 		ASSERT_TRUE(v["f"].get<int>(1) == 0);
@@ -1004,6 +1015,8 @@ TEST(ut_xpjson, get_with_casting)
 		ASSERT_TRUE(v["s_f"].get<int>(0) == 1);
 		ASSERT_TRUE(v["s_b_t"].get<int>(0) == 1);
 		ASSERT_TRUE(v["s_b_f"].get<int>(1) == 0);
+		ASSERT_TRUE(v["s_b_f_3"].get<int>(0) == 0);
+		ASSERT_TRUE(v["s_b_f_3"].get<int>(1) == 1);
 
 		ASSERT_TRUE(v.get<int64_t>("i", 0) == 1);
 		ASSERT_TRUE(v.get<int64_t>("f", 1) == 0);
@@ -1012,6 +1025,8 @@ TEST(ut_xpjson, get_with_casting)
 		ASSERT_TRUE(v.get<int64_t>("s_f", 0) == 1);
 		ASSERT_TRUE(v.get<int64_t>("s_b_t", 0) == 1);
 		ASSERT_TRUE(v.get<int64_t>("s_b_f", 1) == 0);
+		ASSERT_TRUE(v.get<int64_t>("s_b_f_3", 0) == 0);
+		ASSERT_TRUE(v.get<int64_t>("s_b_f_3", 1) == 1);
 
 		ASSERT_TRUE(v["i"].get<int64_t>(0) == 1);
 		ASSERT_TRUE(v["f"].get<int64_t>(1) == 0);
@@ -1020,6 +1035,8 @@ TEST(ut_xpjson, get_with_casting)
 		ASSERT_TRUE(v["s_f"].get<int64_t>(0) == 1);
 		ASSERT_TRUE(v["s_b_t"].get<int64_t>(0) == 1);
 		ASSERT_TRUE(v["s_b_f"].get<int64_t>(1) == 0);
+		ASSERT_TRUE(v["s_b_f_3"].get<int64_t>(0) == 0);
+		ASSERT_TRUE(v["s_b_f_3"].get<int64_t>(1) == 1);
 
 		// 2. cast to float
 		ASSERT_TRUE(v.get<float>("i", 0) == 1);
@@ -1029,6 +1046,8 @@ TEST(ut_xpjson, get_with_casting)
 		ASSERT_TRUE(fabs(v.get<float>("s_f", 0) - 1.1) < JSON_EPSILON);
 		ASSERT_TRUE(v.get<float>("s_b_t", 0) == 1);
 		ASSERT_TRUE(v.get<float>("s_b_f", 1) == 0);
+		ASSERT_TRUE(v.get<float>("s_b_f_3", 0) == 0);
+		ASSERT_TRUE(v.get<float>("s_b_f_3", 1) == 1);
 
 		ASSERT_TRUE(v["i"].get<float>(0) == 1);
 		ASSERT_TRUE(fabs(v["f"].get<float>(0) - 0.1) < JSON_EPSILON);
@@ -1037,6 +1056,8 @@ TEST(ut_xpjson, get_with_casting)
 		ASSERT_TRUE(fabs(v["s_f"].get<float>(0) - 1.1) < JSON_EPSILON);
 		ASSERT_TRUE(v["s_b_t"].get<float>(0) == 1);
 		ASSERT_TRUE(v["s_b_f"].get<float>(1) == 0);
+		ASSERT_TRUE(v["s_b_f_3"].get<float>(0) == 0);
+		ASSERT_TRUE(v["s_b_f_3"].get<float>(1) == 1);
 
 		ASSERT_TRUE(v.get<double>("i", 0) == 1);
 		ASSERT_TRUE(fabs(v.get<double>("f", 0) - 0.1) < JSON_EPSILON);
@@ -1045,6 +1066,8 @@ TEST(ut_xpjson, get_with_casting)
 		ASSERT_TRUE(fabs(v.get<double>("s_f", 0) - 1.1) < JSON_EPSILON);
 		ASSERT_TRUE(v.get<double>("s_b_t", 0) == 1);
 		ASSERT_TRUE(v.get<double>("s_b_f", 1) == 0);
+		ASSERT_TRUE(v.get<double>("s_b_f_3", 0) == 0);
+		ASSERT_TRUE(v.get<double>("s_b_f_3", 1) == 1);
 
 		ASSERT_TRUE(v["i"].get<double>(0) == 1);
 		ASSERT_TRUE(fabs(v["f"].get<double>(0) - 0.1) < JSON_EPSILON);
@@ -1053,6 +1076,8 @@ TEST(ut_xpjson, get_with_casting)
 		ASSERT_TRUE(fabs(v["s_f"].get<double>(0) - 1.1) < JSON_EPSILON);
 		ASSERT_TRUE(v["s_b_t"].get<double>(0) == 1);
 		ASSERT_TRUE(v["s_b_f"].get<double>(1) == 0);
+		ASSERT_TRUE(v["s_b_f_3"].get<double>(0) == 0);
+		ASSERT_TRUE(v["s_b_f_3"].get<double>(1) == 1);
 
 		ASSERT_TRUE(v.get<long double>("i", 0) == 1);
 		ASSERT_TRUE(fabs(v.get<long double>("f", 0) - 0.1) < JSON_EPSILON);
@@ -1061,6 +1086,8 @@ TEST(ut_xpjson, get_with_casting)
 		ASSERT_TRUE(fabs(v.get<long double>("s_f", 0) - 1.1) < JSON_EPSILON);
 		ASSERT_TRUE(v.get<long double>("s_b_t", 0) == 1);
 		ASSERT_TRUE(v.get<long double>("s_b_f", 1) == 0);
+		ASSERT_TRUE(v.get<long double>("s_b_f_3", 0) == 0);
+		ASSERT_TRUE(v.get<long double>("s_b_f_3", 1) == 1);
 
 		ASSERT_TRUE(v["i"].get<long double>(0) == 1);
 		ASSERT_TRUE(fabs(v["f"].get<long double>(0) - 0.1) < JSON_EPSILON);
@@ -1069,6 +1096,8 @@ TEST(ut_xpjson, get_with_casting)
 		ASSERT_TRUE(fabs(v["s_f"].get<long double>(0) - 1.1) < JSON_EPSILON);
 		ASSERT_TRUE(v["s_b_t"].get<long double>(0) == 1);
 		ASSERT_TRUE(v["s_b_f"].get<long double>(1) == 0);
+		ASSERT_TRUE(v["s_b_f_3"].get<long double>(0) == 0);
+		ASSERT_TRUE(v["s_b_f_3"].get<long double>(1) == 1);
 
 		// 3. cast to bool
 		ASSERT_TRUE(v.get<bool>("i", false) == true);
@@ -1082,6 +1111,8 @@ TEST(ut_xpjson, get_with_casting)
 		ASSERT_TRUE(v.get<bool>("s_b_f", true) == false);
 		ASSERT_TRUE(v.get<bool>("s_b_f_1", true) == false);
 		ASSERT_TRUE(v.get<bool>("s_b_f_2", true) == false);
+		ASSERT_TRUE(v.get<bool>("s_b_f_3", true) == true);
+		ASSERT_TRUE(v.get<bool>("s_b_f_3", false) == false);
 
 		ASSERT_TRUE(v["i"].get<bool>(false) == true);
 		ASSERT_TRUE(v["f"].get<bool>(true) == true);
@@ -1094,6 +1125,8 @@ TEST(ut_xpjson, get_with_casting)
 		ASSERT_TRUE(v["s_b_f"].get<bool>(true) == false);
 		ASSERT_TRUE(v["s_b_f_1"].get<bool>(true) == false);
 		ASSERT_TRUE(v["s_b_f_2"].get<bool>(true) == false);
+		ASSERT_TRUE(v["s_b_f_3"].get<bool>(true) == true);
+		ASSERT_TRUE(v["s_b_f_3"].get<bool>(false) == false);
 
 		// 4. cast to string
 		string empty;
@@ -1120,22 +1153,6 @@ TEST(ut_xpjson, get_with_casting)
 		ASSERT_TRUE(v["s_b_f"].get<string>(empty) == "false");
 		ASSERT_TRUE(v["s_b_f_1"].get<string>(empty) == "0");
 		ASSERT_TRUE(v["s_b_f_2"].get<string>(empty) == "0.0");
-
-		JSON::Value v_e;
-		v["s_i"] = "1x";
-		v["s_f"] = "1.1x";
-		v["s_b_t"] = "trux";
-		v["s_b_f"] = "falsx";
-
-		EXPECT_THROW(v.get<int>("s_i", 0), std::logic_error);
-		EXPECT_THROW(v.get<int>("s_f", 0), std::logic_error);
-		EXPECT_THROW(v.get<bool>("s_b_t", true), std::logic_error);
-		EXPECT_THROW(v.get<bool>("s_b_f", true), std::logic_error);
-
-		EXPECT_THROW(v["s_i"].get<int>(0), std::logic_error);
-		EXPECT_THROW(v["s_f"].get<int>(0), std::logic_error);
-		EXPECT_THROW(v["s_b_t"].get<bool>(true), std::logic_error);
-		EXPECT_THROW(v["s_b_f"].get<bool>(true), std::logic_error);
 	}
 	catch(std::exception &e) {
 		printf("Error : %s.", e.what());
@@ -1215,7 +1232,7 @@ TEST(ut_xpjson, read_string)
 		// case 3 non-complete escape string
 		EXPECT_THROW(v.read_string("\"a\\", 6), std::logic_error);
 
-		// case 4 unkonwn escape sequence
+		// case 4 unknown escape sequence
 		EXPECT_THROW(v.read_string("\"\\v\"", 4), std::logic_error);
 
 		// case 5 all whitespace
