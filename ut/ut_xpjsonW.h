@@ -48,6 +48,11 @@ TEST(ut_xpjsonW, write)
 
 		v.read_number(out.c_str(), out.length());
 		ASSERT_TRUE(fabs(v.f() + DBL_MIN) < 1e-293);
+
+		v = L"/\\\"";
+		out.clear();
+		v.write(out);
+		ASSERT_TRUE(out == L"\"\\/\\\\\\\"\"");
 	}
 	catch(std::exception &e) {
 		printf("Error : %s.", e.what());

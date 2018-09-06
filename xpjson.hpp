@@ -391,8 +391,8 @@ template<> inline void to_string<type, char_t>(type v, JSON_TSTRING(char_t)& out
 		}
 
 		template<class char_t> bool check_need_conv(char_t ch);
-		template<> inline bool check_need_conv<char>(char ch) {return ch == '\\' || ch < 0x20;}
-		template<> inline bool check_need_conv<wchar_t>(wchar_t ch) {return ch == '\\' || ch < 0x20 || ch > 0x7F;}
+		template<> inline bool check_need_conv<char>(char ch) {return ch < 0x20 || ch == '\\' || ch == '\"' || ch == '/';}
+		template<> inline bool check_need_conv<wchar_t>(wchar_t ch) {return ch < 0x20 || ch > 0x7F || ch == '\\' || ch == '\"' || ch == '/';}
 	}
 
 	/** JSON type of a value. */
