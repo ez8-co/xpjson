@@ -744,12 +744,12 @@ template<> inline void to_string<type, char_t>(type v, JSON_TSTRING(char_t)& out
 			Return char_t count(offset) parsed.
 			If error occurred, throws an exception.
 		*/
-		size_t read(const char_t* in, size_t len, bool dma = true);
-		size_t read(const char_t* in, bool dma = true)
+		size_t read(const char_t* in, size_t len, bool dma = false);
+		size_t read(const char_t* in, bool dma = false)
 		{
 			return read(in, detail::tcslen(in), dma);
 		}
-		size_t read(const tstring& in, bool dma = true)
+		size_t read(const tstring& in, bool dma = false)
 		{
 			return read(in.data(), in.size(), dma);
 		}
