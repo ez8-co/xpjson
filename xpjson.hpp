@@ -748,12 +748,12 @@ template<> inline void to_string<type, char_t>(type v, JSON_TSTRING(char_t)& out
 			Return char_t count(offset) parsed.
 			If error occurred, throws an exception.
 		*/
-		size_t read(const char_t* in, size_t len, bool dma = true);
-		size_t read(const char_t* in, bool dma = true)
+		size_t read(const char_t* in, size_t len, bool dma = false);
+		size_t read(const char_t* in, bool dma = false)
 		{
 			return read(in, detail::tcslen(in), dma);
 		}
-		size_t read(const tstring& in, bool dma = true)
+		size_t read(const tstring& in, bool dma = false)
 		{
 			return read(in.data(), in.size(), dma);
 		}
@@ -785,11 +785,11 @@ template<> inline void to_string<type, char_t>(type v, JSON_TSTRING(char_t)& out
 			Return char_t count(offset) parsed.
 			If error occurred, throws an exception.
 		*/
-		size_t read_nil(const char_t* in, size_t len, bool dma = true);
-		size_t read_boolean(const char_t* in, size_t len, bool dma = true);
-		size_t read_number(const char_t* in, size_t len, bool dma = true);
+		size_t read_nil(const char_t* in, size_t len, bool dma = false);
+		size_t read_boolean(const char_t* in, size_t len, bool dma = false);
+		size_t read_number(const char_t* in, size_t len, bool dma = false);
 		/* NOTE: MUST with quotes.*/
-		size_t read_string(const char_t* in, size_t len, bool dma = true);
+		size_t read_string(const char_t* in, size_t len, bool dma = false);
 
 	protected:
 		unsigned char _type       : 3;
@@ -832,9 +832,9 @@ template<> inline void to_string<type, char_t>(type v, JSON_TSTRING(char_t)& out
 	template<class char_t>
 	struct ReaderT
 	{
-		static inline size_t read(ValueT<char_t>& v, const char_t* in, size_t len, bool dma = true) {return v.read(in, len, dma);}
-		static inline size_t read(ValueT<char_t>& v, const char_t* in, bool dma = true) {return v.read(in, detail::tcslen(in), dma);}
-		static inline size_t read(ValueT<char_t>& v, const JSON_TSTRING(char_t)& in, bool dma = true) {return v.read(in.data(), in.size(), dma);}
+		static inline size_t read(ValueT<char_t>& v, const char_t* in, size_t len, bool dma = false) {return v.read(in, len, dma);}
+		static inline size_t read(ValueT<char_t>& v, const char_t* in, bool dma = false) {return v.read(in, detail::tcslen(in), dma);}
+		static inline size_t read(ValueT<char_t>& v, const JSON_TSTRING(char_t)& in, bool dma = false) {return v.read(in.data(), in.size(), dma);}
 	};
 
 	typedef ReaderT<char>    Reader;
