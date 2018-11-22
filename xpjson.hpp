@@ -253,10 +253,12 @@ template<> inline void to_string<type, char_t>(type v, JSON_TSTRING(char_t)& out
 					case '\n': out += "\\n";  break;
 					case '\r': out += "\\r";  break;
 					case '\t': out += "\\t";  break;
-					case 0:case 1:case 2:case 3:case 4:case 5:case 6:case 7:
-					case 11:case 14:case 15:case 16:case 17:case 18:case 19:
-						encode_unicode<sizeof(char), char>(*in, out); break;
-					default:   out += *in; break;
+					default:
+						if (unsigned(*in) < ' ')
+							encode_unicode<sizeof(char), char>(*in, out);
+						else
+							out += *in;
+						break;
 				}
 				++in;
 			}
@@ -276,10 +278,12 @@ template<> inline void to_string<type, char_t>(type v, JSON_TSTRING(char_t)& out
 						case '\n': out += L"\\n";  break;
 						case '\r': out += L"\\r";  break;
 						case '\t': out += L"\\t";  break;
-						case 0:case 1:case 2:case 3:case 4:case 5:case 6:case 7:
-						case 11:case 14:case 15:case 16:case 17:case 18:case 19:
-							encode_unicode<sizeof(wchar_t), wchar_t>(*in, out); break;
-						default:   out += *in;     break;
+						default:
+							if (unsigned(*in) < ' ')
+								encode_unicode<sizeof(wchar_t), wchar_t>(*in, out);
+							else
+								out += *in;
+							break;
 					}
 				}
 				++in;
