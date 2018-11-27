@@ -172,19 +172,20 @@ python
 - You MUST catch exception while using following methods that may throw exception.
 
 ```cpp
-	try {
-		string in("{}");
-		JSON::Value v;
-		v.read(v, in.c_str(), in.length());
-	}
-	catch(std::exception &e) {
-		printf("Error : %s.", e.what());
-		// or do what you want
-	}
+try {
+	string in("{}");
+	JSON::Value v;
+	v.read(v, in.c_str(), in.length());
+}
+catch(std::exception &e) {
+	printf("Error : %s.", e.what());
+	// or do what you want
+}
 ```
 
 |Class Name|Method Name|
 |-|-|
+|JSON::Reader|read|
 |JSON::Value|read|
 |JSON::Value|read_nil|
 |JSON::Value|read_boolean|
@@ -196,6 +197,23 @@ python
 |JSON::Value|s|
 |JSON::Value|o|
 |JSON::Value|a|
+
+### Optional COW(Copy-On-Write) Feature
+
+- You should care about the life cycle string/buffer's by yourself when using this feature.
+- The feature may be automatically inherited by assignment or movement or reference.
+- Pass `true` to `cow` switch to manually enable this feature.
+
+|Class Name|Method Name|
+|-|-|
+|JSON::Reader|read|
+|JSON::Value|read|
+|JSON::Value|read_nil|
+|JSON::Value|read_boolean|
+|JSON::Value|read_number|
+|JSON::Value|read_string|
+|JSON::Value|ValueT(string/buffer related)|
+|JSON::Value|assign(string/buffer related)|
 
 ### Benchmark
 
