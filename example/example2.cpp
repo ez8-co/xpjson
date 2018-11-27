@@ -13,19 +13,17 @@ int main()
 	personalities["age"] = 28;
 
 	JSON::Array& skills = orca["skills"].a();
-	skills.reserve(3);
-	// You should use resize or push_back for Array, coz it's vector.
 	skills.resize(2);
 	skills[0] = "C++";
 	skills[1] = "golang";
 	// Use JSON_MOVE to gain perf opt benefits under C++11 if possible.
-	skills.push_back(JSON_MOVE(string("python")));
+	skills.push_back(JSON_MOVE(std::string("python")));
 
-	string out;
+	std::string out;
 	// reserve 100 bytes, reduce reallocation and copy cost of time
 	out.reserve(100);
 	v.write(out);
 
-	cout << out << endl;
+	std::cout << out << std::endl;
 	return 0;
 }

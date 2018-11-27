@@ -4,7 +4,7 @@
 
 int main()
 {
-	string in("{\"orca\":{\"personalities\":{\"age\":28,\"company\":\"ez8.co\",\"name\":\"Zhang Wei\",\"sex\":\"male\"},\"skills\":[\"C++\",\"golang\",\"python\"]}}");
+	std::string in("{\"orca\":{\"personalities\":{\"age\":28,\"company\":\"ez8.co\",\"name\":\"Zhang Wei\",\"sex\":\"male\"},\"skills\":[\"C++\",\"golang\",\"python\"]}}");
 	JSON::Value v;
 	size_t ret = v.read(in);
 	assert(ret == in.length());
@@ -15,16 +15,16 @@ int main()
 	JSON::Object& personalities = orca["personalities"].o();
 	JSON::Array& skills = orca["skills"].a();
 
-	cout << "Personalities:" << endl;
+	std::cout << "Personalities:" << std::endl;
 	for(JSON::Object::const_iterator it=personalities.begin(); it!=personalities.end(); ++it) {
-		string out;
+		std::string out;
 		it->second.to_string(out);
-		cout << it->first << " -> " << out << endl;
+		std::cout << it->first << " -> " << out << std::endl;
 	}
 
-	cout << endl << "Skills:" << endl;
+	std::cout << std::endl << "Skills:" << std::endl;
 	for(JSON::Array::const_iterator it=skills.begin(); it!=skills.end(); ++it) {
-		cout << it->s() << endl;
+		std::cout << it->s() << std::endl;
 	}
 
 	return 0;

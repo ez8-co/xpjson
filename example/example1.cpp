@@ -12,9 +12,9 @@ int main()
 	v["orca"]["skills"][1] = "golang";
 	v["orca"]["skills"][2] = "python";
 
-	string out;
+	std::string out;
 	v.write(out);
 
-	cout << out << endl;
+	std::cout << out << std::endl;
 	return 0;
 }
