@@ -476,11 +476,11 @@ template<> inline void to_string<type, char_t>(type v, JSON_TSTRING(char_t)& out
 #undef JSON_FLOAT_CTOR
 
 		/** Constructor from pointer to char(C-string).  */
-		ValueT(const char_t* s, int escape = AUTO_DETECT, bool dma = false) : _type(NIL) {assign(s, detail::tcslen(s), escape, dma);}
+		ValueT(const char_t* s, int escape = AUTO_DETECT, bool cow = false) : _type(NIL) {assign(s, detail::tcslen(s), escape, cow);}
 		/** Constructor from pointer to char(C-string).  */
-		ValueT(const char_t* s, size_t l, int escape = AUTO_DETECT, bool dma = false) : _type(NIL) {assign(s, l, escape, dma);}
+		ValueT(const char_t* s, size_t l, int escape = AUTO_DETECT, bool cow = false) : _type(NIL) {assign(s, l, escape, cow);}
 		/** Constructor from STD string  */
-		ValueT(const tstring& s, int escape = AUTO_DETECT, bool dma = false) : _type(NIL) {assign(s.data(), s.size(), escape, dma);}
+		ValueT(const tstring& s, int escape = AUTO_DETECT, bool cow = false) : _type(NIL) {assign(s.data(), s.size(), escape, cow);}
 		/** Constructor from pointer to Object. */
 		ValueT(const ObjectT<char_t>& o) : _type(OBJECT), _o(0) {_o = new ObjectT<char_t>(o);}
 		/** Constructor from pointer to Array. */
@@ -511,11 +511,11 @@ template<> inline void to_string<type, char_t>(type v, JSON_TSTRING(char_t)& out
 		inline typename detail::json_enable_if<detail::json_is_floating_point<T>::value>::type
 		assign(T f) {clear(FLOAT); _f = f;}
 		/** Assign function from pointer to char(C-string).  */
-		inline void assign(const char_t* s, int escape = AUTO_DETECT, bool dma = false) {assign(s, detail::tcslen(s), escape, dma);}
+		inline void assign(const char_t* s, int escape = AUTO_DETECT, bool cow = false) {assign(s, detail::tcslen(s), escape, cow);}
 		/** Assign function from pointer to char(C-string).  */
-		inline void assign(const char_t* s, size_t l, int escape = AUTO_DETECT, bool dma = false);
+		inline void assign(const char_t* s, size_t l, int escape = AUTO_DETECT, bool cow = false);
 		/** Assign function from STD string  */
-		inline void assign(const tstring& s, int escape = AUTO_DETECT, bool dma = false) {assign(s.data(), s.size(), escape, dma);}
+		inline void assign(const tstring& s, int escape = AUTO_DETECT, bool cow = false) {assign(s.data(), s.size(), escape, cow);}
 		/** Assign function from pointer to Object. */
 		inline void assign(const ObjectT<char_t>& o) {clear(OBJECT); *_o = o;}
 		/** Assign function from pointer to Array. */
@@ -597,9 +597,9 @@ template<> inline void to_string<type, char_t>(type v, JSON_TSTRING(char_t)& out
 		inline operator tstring() const
 		{
 			JSON_CHECK_TYPE(_type, STRING);
-			if(_sso || _dma){
+			if(_sso || _cow){
 				_s = new tstring(c_str(), length());
-				_sso = _dma = false;
+				_sso = _cow = false;
 			}
 			return *_s;
 		}
@@ -658,11 +658,11 @@ template<> inline void to_string<type, char_t>(type v, JSON_TSTRING(char_t)& out
 		/** Fetch string reference */
 		inline tstring& s()
 		{
-			if(_type == NIL) {_type = STRING; _sso = _dma = false; _s = new tstring;}
+			if(_type == NIL) {_type = STRING; _sso = _cow = false; _s = new tstring;}
 			JSON_CHECK_TYPE(_type, STRING);
-			if(_sso || _dma){
+			if(_sso || _cow){
 				_s = new tstring(c_str(), length());
-				_sso = _dma = false;
+				_sso = _cow = false;
 			}
 			_e = true; // the string may be modified by caller
 			return *_s;
@@ -671,9 +671,9 @@ template<> inline void to_string<type, char_t>(type v, JSON_TSTRING(char_t)& out
 		inline const tstring& s() const
 		{
 			JSON_CHECK_TYPE(_type, STRING);
-			if(_sso || _dma){
+			if(_sso || _cow){
 				_s = new tstring(c_str(), length());
-				_sso = _dma = false;
+				_sso = _cow = false;
 			}
 			return *_s;
 		}
@@ -748,14 +748,14 @@ template<> inline void to_string<type, char_t>(type v, JSON_TSTRING(char_t)& out
 			Return char_t count(offset) parsed.
 			If error occurred, throws an exception.
 		*/
-		size_t read(const char_t* in, size_t len, bool dma = false);
-		size_t read(const char_t* in, bool dma = false)
+		size_t read(const char_t* in, size_t len, bool cow = false);
+		size_t read(const char_t* in, bool cow = false)
 		{
-			return read(in, detail::tcslen(in), dma);
+			return read(in, detail::tcslen(in), cow);
 		}
-		size_t read(const tstring& in, bool dma = false)
+		size_t read(const tstring& in, bool cow = false)
 		{
-			return read(in.data(), in.size(), dma);
+			return read(in.data(), in.size(), cow);
 		}
 
 		const char_t* c_str() const
@@ -763,7 +763,7 @@ template<> inline void to_string<type, char_t>(type v, JSON_TSTRING(char_t)& out
 			JSON_CHECK_TYPE(_type, STRING);
 			if(_sso)
 				return reinterpret_cast<const char_t*>(_sso_s);
-			else if (_dma)
+			else if (_cow)
 				return _d;
 			else
 				return _s->c_str();
@@ -774,8 +774,8 @@ template<> inline void to_string<type, char_t>(type v, JSON_TSTRING(char_t)& out
 			JSON_CHECK_TYPE(_type, STRING);
 			if(_sso)
 				return _sso_len;
-			else if (_dma)
-				return _dma_len;
+			else if (_cow)
+				return _cow_len;
 			else
 				return _s->length();
 		}
@@ -785,25 +785,25 @@ template<> inline void to_string<type, char_t>(type v, JSON_TSTRING(char_t)& out
 			Return char_t count(offset) parsed.
 			If error occurred, throws an exception.
 		*/
-		size_t read_nil(const char_t* in, size_t len, bool dma = false);
-		size_t read_boolean(const char_t* in, size_t len, bool dma = false);
-		size_t read_number(const char_t* in, size_t len, bool dma = false);
+		size_t read_nil(const char_t* in, size_t len, bool cow = false);
+		size_t read_boolean(const char_t* in, size_t len, bool cow = false);
+		size_t read_number(const char_t* in, size_t len, bool cow = false);
 		/* NOTE: MUST with quotes.*/
-		size_t read_string(const char_t* in, size_t len, bool dma = false);
+		size_t read_string(const char_t* in, size_t len, bool cow = false);
 
 	protected:
 		unsigned char _type       : 3;
 		mutable bool _sso         : 1; // small string optimization
 		union {
 			struct {     // not sso
-				mutable bool _dma : 1; // used for direct memory access string
+				mutable bool _cow : 1; // used for direct memory access string
 				bool _e           : 1; // used for string, indicates needs to be escaped or encoded.
 				char              : 2; // reserved
 			};
 			unsigned int _sso_len : 4;
 		};
 		char _sso_s[3]; // sso string storage, 15 bytes can be used in fact
-		unsigned int _dma_len;
+		unsigned int _cow_len;
 		union {
 			bool    _b;
 			int64_t _i;
@@ -832,9 +832,9 @@ template<> inline void to_string<type, char_t>(type v, JSON_TSTRING(char_t)& out
 	template<class char_t>
 	struct ReaderT
 	{
-		static inline size_t read(ValueT<char_t>& v, const char_t* in, size_t len, bool dma = false) {return v.read(in, len, dma);}
-		static inline size_t read(ValueT<char_t>& v, const char_t* in, bool dma = false) {return v.read(in, detail::tcslen(in), dma);}
-		static inline size_t read(ValueT<char_t>& v, const JSON_TSTRING(char_t)& in, bool dma = false) {return v.read(in.data(), in.size(), dma);}
+		static inline size_t read(ValueT<char_t>& v, const char_t* in, size_t len, bool cow = false) {return v.read(in, len, cow);}
+		static inline size_t read(ValueT<char_t>& v, const char_t* in, bool cow = false) {return v.read(in, detail::tcslen(in), cow);}
+		static inline size_t read(ValueT<char_t>& v, const JSON_TSTRING(char_t)& in, bool cow = false) {return v.read(in.data(), in.size(), cow);}
 	};
 
 	typedef ReaderT<char>    Reader;
@@ -937,7 +937,7 @@ namespace JSON
 				case STRING:
 					_sso = true;
 					_sso_len = 0;
-					assign(v.c_str(), v.length(), v._e, v._dma);
+					assign(v.c_str(), v.length(), v._e, v._cow);
 					break;
 				case OBJECT:  _o = new ObjectT<char_t>(*v._o); break;
 				case ARRAY:   _a = new ArrayT<char_t>(*v._a); break;
@@ -946,7 +946,7 @@ namespace JSON
 	}
 
 	template<class char_t>
-	void ValueT<char_t>::assign(const char_t* s, size_t l, int escape, bool dma)
+	void ValueT<char_t>::assign(const char_t* s, size_t l, int escape, bool cow)
 	{
 		clear(STRING);
 		if(escape == AUTO_DETECT) {
@@ -959,30 +959,30 @@ namespace JSON
 			}
 		}
 		if((_e = escape)) {
-			if(_sso || _dma) {
-				_sso = _dma = false;
+			if(_sso || _cow) {
+				_sso = _cow = false;
 				_s = new tstring(s, l);
 			}
 			else {
 				_s->assign(s, l);
 			}
 		}
-		else if(dma && l <= (unsigned)-1) {
-			if(!_sso && !_dma) delete _s;
+		else if(cow && l <= (unsigned)-1) {
+			if(!_sso && !_cow) delete _s;
 			_sso = false;
-			_dma = true;
+			_cow = true;
 			_d = s;
-			_dma_len = l;
+			_cow_len = l;
 		}
 		else if(l <= (15 / sizeof(char_t))) {
-			if(!_sso && !_dma) delete _s;
+			if(!_sso && !_cow) delete _s;
 			_sso = true;
 			_sso_len = l;
 			memcpy(_sso_s, s, l * sizeof(char_t));
 		}
 		else {
-			if(_sso || _dma) {
-				_sso = _dma = false;
+			if(_sso || _cow) {
+				_sso = _cow = false;
 				_s = new tstring(s, l);
 			}
 			else {
@@ -1005,8 +1005,8 @@ namespace JSON
 			}
 		}
 		clear(STRING);
-		if(_sso || _dma) {
-			_sso = _dma = false;
+		if(_sso || _cow) {
+			_sso = _cow = false;
 			_s = new tstring;
 		}
 		_s->swap(s);
@@ -1025,7 +1025,7 @@ namespace JSON
 				case INTEGER: _i = v._i;   break;
 				case FLOAT:   _f = v._f;   break;
 				case STRING:
-					assign(v.c_str(), v.length(), v._e, v._dma);
+					assign(v.c_str(), v.length(), v._e, v._cow);
 					break;
 				case OBJECT:  *_o = *v._o; break;
 				case ARRAY:   *_a = *v._a; break;
@@ -1045,12 +1045,12 @@ namespace JSON
 				case INTEGER: _i = v._i;   break;
 				case FLOAT:   _f = v._f;   break;
 				case STRING:
-					if(!_sso && !_dma && !v._sso && !v._dma) {
+					if(!_sso && !_cow && !v._sso && !v._cow) {
 						swap(_s, v._s);
 						_e = v._e;
 					}
 					else {
-						assign(v.c_str(), v.length(), v._e, v._dma);
+						assign(v.c_str(), v.length(), v._e, v._cow);
 					}
 					break;
 				case OBJECT:  swap(_o, v._o); break;
@@ -1066,7 +1066,7 @@ namespace JSON
 	{
 		if(_type != type) {
 			switch(_type) {
-				case STRING: if(!_sso && !_dma) delete _s; break;
+				case STRING: if(!_sso && !_cow) delete _s; break;
 				case OBJECT: delete _o; break;
 				case ARRAY:  delete _a; break;
 				default: break;
@@ -1084,7 +1084,7 @@ namespace JSON
 		}
 		else {
 			switch(_type) {
-				case STRING: if(!_sso && !_dma) _s->clear(); break;
+				case STRING: if(!_sso && !_cow) _s->clear(); break;
 				case OBJECT: _o->clear(); break;
 				case ARRAY:  _a->clear(); break;
 				default: break;
@@ -1170,7 +1170,7 @@ namespace JSON
 				break;
 			case STRING:
 				out += '\"';
-				if(!_sso && !_dma && _e) detail::encode(_s->c_str(), _s->length(), out);
+				if(!_sso && !_cow && _e) detail::encode(_s->c_str(), _s->length(), out);
 				else out.append(c_str(), length());
 				out += '\"';
 				break;
@@ -1195,7 +1195,7 @@ namespace JSON
 	}
 
 	template<class char_t>
-	size_t ValueT<char_t>::read_string(const char_t* in, size_t len, bool dma)
+	size_t ValueT<char_t>::read_string(const char_t* in, size_t len, bool cow)
 	{
 		register bool e = false;
 		register size_t pos = 0;
@@ -1207,15 +1207,15 @@ namespace JSON
 			if(XPJSON_UNLIKELY(in[pos] == '\"')) {
 				if(e) {
 					clear(STRING);
-					if(_sso || _dma) {
-						_sso = _dma = false;
+					if(_sso || _cow) {
+						_sso = _cow = false;
 						_s = new tstring;
 					}
 					detail::decode(in + start, pos - start, *_s);
 					_e = e;
 				}
 				else {
-					assign(in + start, pos - start, e, dma);
+					assign(in + start, pos - start, e, cow);
 				}
 				return pos + 1;
 			}
@@ -1338,7 +1338,7 @@ namespace JSON
 		else {
 			clear(FLOAT);
 			if (XPJSON_UNLIKELY(exp > 0x1FF)) {
-				errno = ERANGE;
+				// errno = ERANGE;
 				_f = 0;
 			}
 			else {
@@ -1400,7 +1400,7 @@ namespace JSON
 	}
 
 	template<class char_t>
-	size_t ValueT<char_t>::read(const char_t* in, size_t len, bool dma/* = true*/)
+	size_t ValueT<char_t>::read(const char_t* in, size_t len, bool cow/* = false*/)
 	{
 		// Indicate current parse state
 		enum {OBJECT_LBRACE,          /* { */
@@ -1512,7 +1512,7 @@ namespace JSON
 							pv.push_back(&pv.back()->_a->back());
 						}
 						// ++pos at last, so minus 1 here.
-						pos += (pv.back()->*u.fp)(in + pos, len - pos, dma) - 1;
+						pos += (pv.back()->*u.fp)(in + pos, len - pos, cow) - 1;
 						u.fp = 0;
 						// pop nil/number/boolean/string Value
 						pv.pop_back();
