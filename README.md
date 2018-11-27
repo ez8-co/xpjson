@@ -200,9 +200,9 @@ catch(std::exception &e) {
 
 ### Optional COW(Copy-On-Write) Feature
 
-- You should care about the life cycle of input string or buffer by yourself when using this feature.
-- The feature may be automatically inherited by assignment or movement or reference.
-- Pass `true` to `cow` switch to manually enable this feature.
+- You should care about the life cycle of input string or buffer by yourself when using `COW` feature.
+- Pass `true` to `cow` switch to enable `COW` feature manually.
+- `COW` feature may be automatically inherited by assignment or movement or reference.
 
 |Class Name|Method Name|
 |-|-|
