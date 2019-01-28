@@ -303,6 +303,12 @@ TEST(ut_xpjson, read)
 		// case 9 end with backslash in key
 		in = "{\"a\\";
 		EXPECT_THROW(JSON::Reader::read(v, in.c_str(), in.length()), std::logic_error);
+
+		// case 10 bad cow case when hit sso(1/5/9/13 bytes)
+		JSON::Value v2("yyyyy");
+		v = v2; // incorrect treat as cow when cow(sso_len highest bit) is true
+		*const_cast<char*>(v2.c_str()) = 'z';
+		ASSERT_TRUE(v.s() == "yyyyy");
 	}
 	catch(std::exception &e) {
 		printf("Error : %s.", e.what());

@@ -793,10 +793,10 @@ template<> inline void to_string<type, char_t>(type v, JSON_TSTRING(char_t)& out
 
 	protected:
 		unsigned char _type       : 3;
-		mutable bool _sso         : 1; // small string optimization
+		mutable bool _sso         : 1; // small-string-optimization
 		union {
 			struct {     // not sso
-				mutable bool _cow : 1; // used for direct memory access string
+				mutable bool _cow : 1; // used for copy-on-write string
 				bool _e           : 1; // used for string, indicates needs to be escaped or encoded.
 				char              : 2; // reserved
 			};
@@ -937,7 +937,7 @@ namespace JSON
 				case STRING:
 					_sso = true;
 					_sso_len = 0;
-					assign(v.c_str(), v.length(), v._e, v._cow);
+					assign(v.c_str(), v.length(), v._e, !v._sso && v._cow);
 					break;
 				case OBJECT:  _o = new ObjectT<char_t>(*v._o); break;
 				case ARRAY:   _a = new ArrayT<char_t>(*v._a); break;
@@ -1025,7 +1025,7 @@ namespace JSON
 				case INTEGER: _i = v._i;   break;
 				case FLOAT:   _f = v._f;   break;
 				case STRING:
-					assign(v.c_str(), v.length(), v._e, v._cow);
+					assign(v.c_str(), v.length(), v._e, !v._sso && v._cow);
 					break;
 				case OBJECT:  *_o = *v._o; break;
 				case ARRAY:   *_a = *v._a; break;
@@ -1050,7 +1050,7 @@ namespace JSON
 						_e = v._e;
 					}
 					else {
-						assign(v.c_str(), v.length(), v._e, v._cow);
+						assign(v.c_str(), v.length(), v._e, !v._sso && v._cow);
 					}
 					break;
 				case OBJECT:  swap(_o, v._o); break;
