@@ -18,7 +18,7 @@ before_install:
  - ls -l
 script: 
  - cd ut
- - sudo wget https://raw.githubusercontent.com/codecov/example-cpp11-cmake/master/CMakeModules/CodeCoverage.cmake
+ - sudo wget https://raw.githubusercontent.com/fkromer/catch_cmake_coverage/master/cmake/Modules/CodeCoverage.cmake
  - cmake -DBUILD_TESTS=ON .
  - make -j8
  - make -j8 xpjson_coverage
