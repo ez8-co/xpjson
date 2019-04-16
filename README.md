@@ -98,7 +98,6 @@ int main()
   skills.resize(2);
   skills[0] = "C++";
   skills[1] = "golang";
-  skills[2] = "python";
 
   // Use JSON_MOVE to gain perf-opt benefits under C++11 if available.
   skills.push_back(JSON_MOVE(string("python")));
