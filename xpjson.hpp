@@ -645,7 +645,7 @@ template<> inline void to_string<type, char_t>(type v, JSON_TSTRING(char_t)& out
 		/** Fetch float reference */
 		inline double& f()
 		{
-			if(_type == NIL) {_type = FLOAT; _f = 0;}
+			if(_type == NIL) {_type = FLOAT; _f = 0;} else if(_type == INTEGER) { _type = FLOAT; }
 			JSON_CHECK_TYPE(_type, FLOAT);
 			return _f;
 		}
