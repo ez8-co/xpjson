@@ -133,7 +133,7 @@ namespace JSON
 		template<> struct json_is_integral_<signed short> :      json_true_type  {};
 		template<> struct json_is_integral_<unsigned int> :      json_true_type  {};
 		template<> struct json_is_integral_<signed int> :        json_true_type  {};
-#if (defined(__GNUC__) && !defined(__x86_64__)) || (defined(_WIN32) && !defined(_WIN64))
+#if (defined(__GNUC__) && !defined(__x86_64__) && !defined(__aarch64__)) || (defined(_WIN32) && !defined(_WIN64))
 		template<> struct json_is_integral_<unsigned long> :     json_true_type  {};
 		template<> struct json_is_integral_<signed long> :       json_true_type  {};
 #endif
@@ -461,7 +461,7 @@ template<> inline void to_string<type, char_t>(type v, JSON_TSTRING(char_t)& out
 		JSON_INTEGER_CTOR(signed short)
 		JSON_INTEGER_CTOR(unsigned int)
 		JSON_INTEGER_CTOR(signed int)
-#if (defined (__GNUC__) && !defined(__x86_64__)) || (defined(_WIN32) && !defined(_WIN64))
+#if (defined (__GNUC__) && !defined(__x86_64__) && !defined(__aarch64__)) || (defined(_WIN32) && !defined(_WIN64))
 		JSON_INTEGER_CTOR(unsigned long)
 		JSON_INTEGER_CTOR(signed long)
 #endif
@@ -579,7 +579,7 @@ template<> inline void to_string<type, char_t>(type v, JSON_TSTRING(char_t)& out
 		JSON_INTEGER_OPERATOR(signed short)
 		JSON_INTEGER_OPERATOR(unsigned int)
 		JSON_INTEGER_OPERATOR(signed int)
-#if (defined (__GNUC__) && !defined(__x86_64__)) || (defined(_WIN32) && !defined(_WIN64))
+#if (defined (__GNUC__) && !defined(__x86_64__) && !defined(__aarch64__)) || (defined(_WIN32) && !defined(_WIN64))
 		JSON_INTEGER_OPERATOR(unsigned long)
 		JSON_INTEGER_OPERATOR(signed long)
 #endif
